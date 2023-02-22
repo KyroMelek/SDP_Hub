@@ -4,6 +4,7 @@
 #include <string.h>
 #include <xbee_api.hpp>
 #include <iostream>
+#include <vector>
 
 // #include <sstream> // Require to use std::stringstream
 
@@ -71,18 +72,16 @@ void uart_event_task(void *pvParameters)
         uart_read_bytes(ESP_XBEE_UART, dtmp, event.size, portMAX_DELAY);
 
         ESP_LOGI(TAG, "[DATA EVT]: ");
-        for (int i = 0; i < 128; i++)
-        {
-          cout << dtmp[i];
-        }
-        cout << std::endl;
+        // for (int i = 0; i < 128; i++)
+        // {
+        //   cout << dtmp[i];
+        // }
+        // cout << std::endl;
 
         // json with all information about xbee frame
         json *j = readFrame(dtmp);
 
-        cout << "after Read Frame" << std::endl;
-
-        cout << j->dump();
+        cout << j->dump() << std::endl;
 
         // handle error cases
         // unrecognized frame
@@ -100,9 +99,6 @@ void uart_event_task(void *pvParameters)
         {
           // get type of frame
           uint8_t frameType = j->at("FRAME TYPE").get<int>();
-          // should I change these to dynamiclly allocated vars????
-          json frame_payload = (*j)["FRAME DATA"];
-          json frame_overhead = (*j)["FRAME OVERHEAD"];
           // switch based on type of frame
           switch (frameType)
           {
@@ -231,7 +227,6 @@ void uart_event_task(void *pvParameters)
 void performOutletAction(json *j)
 {
   json json_payload = (*j)["FRAME DATA"];
-  json frame_overhead = (*j)["FRAME OVERHEAD"];
 
   if (!json_payload["op"].is_null() && json_payload["op"].is_number())
   {
@@ -256,36 +251,25 @@ void performOutletAction(json *j)
       time_t now;
       time(&now);
       std::string stringTime = std::to_string(now);
-
-      cout << "Before address init" << std::endl;
       cout << json_payload << std::endl;
 
-      uint64_t destAddr = 0;         //(*j)["FRAME OVERHEAD"]["DST64"].get<uint64_t>();
-      uint32_t destAddrLowOrder = 0; //(*j)["FRAME OVERHEAD"]["DST16"].get<uint32_t>();
-
-      cout << "after address init" << std::endl;
+      uint64_t destAddr = (*j)["FRAME OVERHEAD"]["DST64"].get<uint64_t>();
+      uint32_t destAddrLowOrder = (*j)["FRAME OVERHEAD"]["DST16"].get<uint32_t>();
 
       json j = {
           {"op", 4},
           "data",
           {"s", now, "us", 0, "tz", "EST+5EDT,M3.2.0/2,M11.1.0/2"}};
 
-      cout
-          << "after j init" << std::endl;
-
       std::string message = j.dump();
 
-      cout << "After dump" << std::endl;
-
-      frame *messageUART = formTXFrame(message, destAddr, destAddrLowOrder, NULL, NULL);
-
-      cout << "After messageUART init" << std::endl;
+      std::vector<uint8_t> *messageUART = formTXFrame(message, destAddr, destAddrLowOrder, NULL, NULL);
 
       // timeval tv;
       // tv.tv_sec = now;
       // sntp_sync_time(&tv);
 
-      int response = uart_write_bytes(ESP_XBEE_UART, messageUART->framePointer, messageUART->size);
+      int response = uart_write_bytes(ESP_XBEE_UART, &messageUART, messageUART->size());
       cout << "Uart bytes written " << response << std::endl;
 
       break;

@@ -65,7 +65,7 @@ uint8_t calculateCHKSM(uint8_t *framePtr, int frameLength);
  * accepts an AT command and an optional new value. If a new value is supplied, it replaces the corresponding
  * parameter on the xbee module. If no new value is supplied, the parameter is queried from the xbee module
  */
-uint8_t *formATFrame(std::string ATCommand, std::string newvalue = "");
+std::vector<uint8_t> *formATFrame(std::string ATCommand, std::string newvalue = "");
 
 /* TX REQUEST
  * transmit data from one xbee module to xbee module whose 64bit and 16bit address is provided
@@ -87,12 +87,8 @@ uint8_t *formATFrame(std::string ATCommand, std::string newvalue = "");
  *      0x01 = disable retries + route repair
  *      0x02 = enable APS encryption (decreases RF payload by 4 bytes)
  */
-struct frame
-{
-  uint8_t *framePointer;
-  uint16_t size;
-};
-frame *formTXFrame(std::string RFData, uint64_t dst_64 = 0x0000000000000000, uint16_t dst_16 = 0x0000, uint8_t bcr = 0x00, uint8_t opt = 0x00);
+std::vector<uint8_t> *formTXFrame(std::string RFData, uint64_t dst_64 = 0x0000000000000000, uint16_t dst_16 = 0x0000, uint8_t bcr = 0x00, uint8_t opt = 0x00);
+std::vector<uint8_t> *formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt);
 
 /* REMOTE AT COMMAND SET/REQUEST
  * query or set AT parameter on remote xbee module; default is to read the passed parameter
@@ -110,7 +106,7 @@ frame *formTXFrame(std::string RFData, uint64_t dst_64 = 0x0000000000000000, uin
  *      0x02 = apply change (0 = will not set)
  *      0x10 = send securely
  */
-uint8_t *formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string newvalue = "", uint8_t opt = 0x00, uint16_t dst_16 = 0xFFFE);
+std::vector<uint8_t> *formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string newvalue = "", uint8_t opt = 0x00, uint16_t dst_16 = 0xFFFE);
 
 ////////////////////////////////////////////////////////
 //                 RECEIVE DATA FRAMES                //

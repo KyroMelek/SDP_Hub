@@ -1,5 +1,6 @@
 #include "xbee_api.hpp"
 #include <iostream>
+#include <vector>
 
 uint8_t GLOBAL_FRAME_ID = 0x01;
 
@@ -73,7 +74,7 @@ uint8_t calculateCHKSM(uint8_t *framePtr, int frameLength)
     return 0xFF - sum;
 }
 
-uint8_t *formATFrame(std::string ATCommand, std::string newvalue)
+std::vector<uint8_t> *formATFrame(std::string ATCommand, std::string newvalue)
 {
     // TO DO- Check that ATCommand is valid
     // if()
@@ -91,36 +92,36 @@ uint8_t *formATFrame(std::string ATCommand, std::string newvalue)
     // isolate CMD MSB and LSB
     std::string cmdBytes = ATCommand.substr(0, 2);
     // start forming frame
-    uint8_t *framePtr = new uint8_t[frameSize]();
-    framePtr[0] = 0x7E;
+    std::vector<uint8_t> *framePtr = new std::vector<uint8_t>;
+    framePtr->push_back(0x7E);
     // length field wants bytes from its end through checksum, so subtract overhead from frame
     int totalLength = frameSize - 4;
     // get MSB of length
-    framePtr[1] = (totalLength && 0xFF00) >> 8;
+    framePtr->push_back((totalLength && 0xFF00) >> 8);
     // get LXB of length
-    framePtr[2] = totalLength;
+    framePtr->push_back(totalLength);
     // assign AT Command identifier
-    framePtr[3] = 0x08;
+    framePtr->push_back(0x08);
     // assign + increment running frame ID
-    framePtr[4] = GLOBAL_FRAME_ID;
+    framePtr->push_back(GLOBAL_FRAME_ID);
     frameIDIncrement();
     // assign command MSB and LSB
-    framePtr[5] = uint8_t(cmdBytes[0]);
-    framePtr[6] = uint8_t(cmdBytes[1]);
+    framePtr->push_back(uint8_t(cmdBytes[0]));
+    framePtr->push_back(uint8_t(cmdBytes[1]));
     // assign opt value
     if (int(valLen) > 0)
     {
         for (int i = 0; i < valLen; ++i)
         {
-            framePtr[i + 7] = newValCpy[i + 1];
+            framePtr->push_back(newValCpy[i + 1]);
         }
     }
     // assign CHKSUM
-    framePtr[frameSize - 1] = calculateCHKSM(framePtr, frameSize);
+    framePtr->push_back(calculateCHKSM(framePtr->data(), frameSize));
     return framePtr;
 }
 
-frame *formTXFrame(std::string RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt)
+std::vector<uint8_t> *formTXFrame(std::string RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt)
 {
     // 18 bytes of overhead in TX frame
     uint16_t frameSize = 18;
@@ -137,39 +138,38 @@ frame *formTXFrame(std::string RFData, uint64_t dst_64, uint16_t dst_16, uint8_t
     frameSize += RFSize;
 
     // begin forming frame
-    uint8_t *framePtr = new uint8_t[frameSize]();
-    framePtr[0] = 0x7E;
+    std::vector<uint8_t> *framePtr = new std::vector<uint8_t>;
+    framePtr->push_back(0x7E);
     // assign sizes
-    framePtr[1] = (frameSize - 4) >> 8;
-    framePtr[2] = (frameSize - 4);
+    framePtr->push_back((frameSize - 4) >> 8);
+    framePtr->push_back(frameSize - 4);
     // assign frame type and ID
-    framePtr[3] = 0x10;
+    framePtr->push_back(0x10);
     // assign + increment running frame ID
-    framePtr[4] = GLOBAL_FRAME_ID;
+    framePtr->push_back(GLOBAL_FRAME_ID);
     frameIDIncrement();
     // assign 8 byte address
     for (int i = 0; i < 8; ++i)
     {
-        framePtr[i + 5] = dst_64 >> (56 - (8 * i));
+        framePtr->push_back(dst_64 >> (56 - (8 * i)));
     }
     // assign 2 byte address
-    framePtr[13] = dst_16 >> 8;
-    framePtr[14] = dst_16;
+    framePtr->push_back(dst_16 >> 8);
+    framePtr->push_back(dst_16);
     // assign BCR and OPT
-    framePtr[15] = bcr;
-    framePtr[16] = opt;
+    framePtr->push_back(bcr);
+    framePtr->push_back(opt);
     // assign RF data
     for (int i = 0; i < RFSize; ++i)
     {
-        framePtr[17 + i] = uint8_t(RFData[i]);
+        framePtr->push_back(uint8_t(RFData[i]));
     }
     // assign checksum
-    framePtr[frameSize - 1] = calculateCHKSM(framePtr, frameSize);
-    frame *zigbeeFrame = new frame{framePtr, frameSize};
-    return zigbeeFrame;
+    framePtr->push_back(calculateCHKSM(framePtr->data(), frameSize));
+    return framePtr;
 }
 
-uint8_t *formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt)
+std::vector<uint8_t> *formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt)
 {
     // 18 bytes of overhead in TX frame
     uint16_t frameSize = 18;
@@ -186,38 +186,38 @@ uint8_t *formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64, uint16_t dst
     frameSize += RFSize;
 
     // begin forming frame
-    uint8_t *framePtr = new uint8_t[frameSize]();
-    framePtr[0] = 0x7E;
+    std::vector<uint8_t> *framePtr = new std::vector<uint8_t>;
+    framePtr->push_back(0x7E);
     // assign sizes
-    framePtr[1] = (frameSize - 4) >> 8;
-    framePtr[2] = (frameSize - 4);
+    framePtr->push_back((frameSize - 4) >> 8);
+    framePtr->push_back((frameSize - 4));
     // assign frame type and ID
-    framePtr[3] = 0x10;
+    framePtr->push_back(0x10);
     // assign + increment running frame ID
-    framePtr[4] = GLOBAL_FRAME_ID;
+    framePtr->push_back(GLOBAL_FRAME_ID);
     frameIDIncrement();
     // assign 8 byte address
     for (int i = 0; i < 8; ++i)
     {
-        framePtr[i + 5] = dst_64 >> (56 - (8 * i));
+        framePtr->push_back(dst_64 >> (56 - (8 * i)));
     }
     // assign 2 byte address
-    framePtr[13] = dst_16 >> 8;
-    framePtr[14] = dst_16;
+    framePtr->push_back(dst_16 >> 8);
+    framePtr->push_back(dst_16);
     // assign BCR and OPT
-    framePtr[15] = bcr;
-    framePtr[16] = opt;
+    framePtr->push_back(bcr);
+    framePtr->push_back(opt);
     // assign RF data
     for (int i = 0; i < RFSize; ++i)
     {
-        framePtr[17 + i] = RFData->at(i);
+        framePtr->push_back(RFData->at(i));
     }
     // assign checksum
-    framePtr[frameSize - 1] = calculateCHKSM(framePtr, frameSize);
+    framePtr->push_back(calculateCHKSM(framePtr->data(), frameSize));
     return framePtr;
 }
 
-uint8_t *formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string newvalue, uint8_t opt, uint16_t dst_16)
+std::vector<uint8_t> *formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string newvalue, uint8_t opt, uint16_t dst_16)
 {
     // 19 bytes without optional value
     uint16_t frameSize = 19;
@@ -233,40 +233,40 @@ uint8_t *formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string 
     // isolate CMD MSB and LSB
     std::string cmdBytes = ATCommand.substr(0, 2);
     // start forming frame
-    uint8_t *framePtr = new uint8_t[frameSize]();
-    framePtr[0] = 0x7E;
+    std::vector<uint8_t> *framePtr = new std::vector<uint8_t>;
+    framePtr->push_back(0x7E);
     // length field wants bytes from its end through checksum, so subtract overhead from frame
     int totalLength = frameSize - 4;
-    framePtr[1] = (totalLength && 0xFF00) >> 8;
+    framePtr->push_back((totalLength && 0xFF00) >> 8);
     // get LXB of length
-    framePtr[2] = totalLength;
+    framePtr->push_back(totalLength);
     // assign AT Command identifier
-    framePtr[3] = 0x17;
+    framePtr->push_back(0x17);
     // assign + increment running frame ID
-    framePtr[4] = GLOBAL_FRAME_ID;
+    framePtr->push_back(GLOBAL_FRAME_ID);
     frameIDIncrement();
     // assign 8 byte address
     for (int i = 0; i < 8; ++i)
     {
-        framePtr[i + 5] = dst_64 >> (56 - (8 * i));
+        framePtr->push_back(dst_64 >> (56 - (8 * i)));
     }
     // assign 2 byte address
-    framePtr[13] = dst_16 >> 8;
-    framePtr[14] = dst_16;
+    framePtr->push_back(dst_16 >> 8);
+    framePtr->push_back(dst_16);
     // assign opt
-    framePtr[15] = opt;
+    framePtr->push_back(opt);
     // assign command MSB and LSB
-    framePtr[16] = uint8_t(cmdBytes[0]);
-    framePtr[17] = uint8_t(cmdBytes[1]);
+    framePtr->push_back(uint8_t(cmdBytes[0]));
+    framePtr->push_back(uint8_t(cmdBytes[1]));
     if (int(valLen) > 0)
     {
         for (int i = 0; i < valLen; ++i)
         {
-            framePtr[i + 18] = newValCpy[i + 1];
+            framePtr->push_back(newValCpy[i + 1]);
         }
     }
     // assign CHKSUM
-    framePtr[frameSize - 1] = calculateCHKSM(framePtr, frameSize);
+    framePtr->push_back(calculateCHKSM(framePtr->data(), frameSize));
     return framePtr;
 }
 
@@ -318,11 +318,11 @@ json *parseTS(uint8_t *frame, uint16_t frameLength)
 json *receivePacket(uint8_t *frame, uint16_t frameLength)
 {
     // get addresses
-    uint32_t dst64 = 0;
+    uint64_t dst64 = 0;
     for (int i = 0; i < 8; ++i)
-        dst64 += uint8_t(frame[i + 4]);
-    uint32_t dst16 = 0;
-    dst16 += uint8_t(frame[12]);
+        dst64 += uint8_t(frame[i + 4]) << (56 - (i * 8));
+    uint16_t dst16 = 0;
+    dst16 += uint8_t(frame[12]) << 8;
     dst16 += uint8_t(frame[13]);
     std::string data = "";
     // length > 12 means there is data
@@ -343,17 +343,17 @@ json *receivePacket(uint8_t *frame, uint16_t frameLength)
 json *explicitRX(uint8_t *frame, uint16_t frameLength)
 {
     // get addresses
-    uint32_t dst64 = 0;
+    uint64_t dst64 = 0;
     for (int i = 0; i < 8; ++i)
-        dst64 += uint8_t(frame[i + 4]);
-    uint32_t dst16 = 0;
-    dst16 += uint8_t(frame[12]);
+        dst64 += uint8_t(frame[i + 4]) << (56 - (i * 8));
+    uint16_t dst16 = 0;
+    dst16 += uint8_t(frame[12]) << 8;
     dst16 += uint8_t(frame[13]);
     uint32_t cluster = 0;
-    cluster += uint8_t(frame[16]);
+    cluster += uint8_t(frame[16]) << 8;
     cluster += uint8_t(frame[17]);
     uint32_t profile = 0;
-    profile += uint8_t(frame[18]);
+    profile += uint8_t(frame[18]) << 8;
     profile += uint8_t(frame[19]);
     std::string data = "";
     // length > 18 means there is data
@@ -362,9 +362,7 @@ json *explicitRX(uint8_t *frame, uint16_t frameLength)
         for (int i = 0; i < frameLength - 18; ++i)
             data += char(frame[i + 21]);
     }
-    std::cout << "Before temp data" << std::endl;
     json tmpData = json::parse(data);
-    std::cout << "After temp data" << std::endl;
     json *tmp = new json{
         {"DESC", "Receive Packet"},
         {"FRAME TYPE", 0x91},
@@ -376,11 +374,11 @@ json *explicitRX(uint8_t *frame, uint16_t frameLength)
 json *remoteAT(uint8_t *frame, uint16_t frameLength)
 {
     // get addresses
-    uint32_t dst64 = 0;
+    uint64_t dst64 = 0;
     for (int i = 0; i < 8; ++i)
-        dst64 += uint8_t(frame[i + 5]);
-    uint32_t dst16 = 0;
-    dst16 += uint8_t(frame[13]);
+        dst64 += uint8_t(frame[i + 5]) << (56 - (i * 8));
+    uint16_t dst16 = 0;
+    dst16 += uint8_t(frame[13]) << 8;
     dst16 += uint8_t(frame[14]);
     std::string cmd = "0x";
     cmd += char(frame[15]);
@@ -405,7 +403,6 @@ json *remoteAT(uint8_t *frame, uint16_t frameLength)
 
 json *readFrame(uint8_t *frame)
 {
-    std::cout << "Inside of read frame" << std::endl;
     // return -2 if not valid
     json *data = nullptr;
     if (frame[0] != 0x7E)
@@ -415,38 +412,31 @@ json *readFrame(uint8_t *frame)
     }
     // find data size
     uint16_t frameLength = frame[1] + frame[2];
-    std::cout << "Before switch" << std::endl;
     // read in appropriate data based on frame type
     switch (frame[3])
     {
     // AT command response
     case 0x88:
-        std::cout << "AT Command Response" << std::endl;
         data = parseATCR(frame, frameLength);
         break;
     // modem status
     case 0x8A:
-        std::cout << "Modem status" << std::endl;
         data = parseMS(frame, frameLength);
         break;
     // transmit status
     case 0x8B:
-        std::cout << "Transmit status" << std::endl;
         data = parseTS(frame, frameLength);
         break;
     // receive packet
     case 0x90:
-        std::cout << "Receive packet" << std::endl;
         data = receivePacket(frame, frameLength);
         break;
     // explicit rx
     case 0x91:
-        std::cout << "explicit rx" << std::endl;
         data = explicitRX(frame, frameLength);
         break;
     // remote AT resposne
     case 0x97:
-        std::cout << "At Response" << std::endl;
         data = remoteAT(frame, frameLength);
         break;
     // unknown case return -1
