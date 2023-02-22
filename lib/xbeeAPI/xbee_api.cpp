@@ -345,7 +345,7 @@ json *explicitRX(uint8_t *frame, uint16_t frameLength)
     // get addresses
     uint64_t dst64 = 0;
     for (int i = 0; i < 8; ++i)
-        dst64 += uint8_t(frame[i + 4]) << (56 - (i * 8));
+        dst64 += uint64_t(frame[i + 4]) << (56 - (i * 8));
     uint16_t dst16 = 0;
     dst16 += uint8_t(frame[12]) << 8;
     dst16 += uint8_t(frame[13]);

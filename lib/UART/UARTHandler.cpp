@@ -251,17 +251,19 @@ void performOutletAction(json *j)
       time_t now;
       time(&now);
       std::string stringTime = std::to_string(now);
-      cout << json_payload << std::endl;
+      cout << "Incoming payload: " << json_payload << std::endl;
 
       uint64_t destAddr = (*j)["FRAME OVERHEAD"]["DST64"].get<uint64_t>();
-      uint32_t destAddrLowOrder = (*j)["FRAME OVERHEAD"]["DST16"].get<uint32_t>();
+      uint16_t destAddrLowOrder = (*j)["FRAME OVERHEAD"]["DST16"].get<uint32_t>();
 
       json j = {
           {"op", 4},
-          "data",
-          {"s", now, "us", 0, "tz", "EST+5EDT,M3.2.0/2,M11.1.0/2"}};
+          {"data",
+           "s", now, "us", 0, "tz", "EST+5EDT,M3.2.0/2,M11.1.0/2"}};
 
       std::string message = j.dump();
+
+      cout << "Data to be sent is:" << message << std::endl;
 
       std::vector<uint8_t> *messageUART = formTXFrame(message, destAddr, destAddrLowOrder, NULL, NULL);
 
@@ -269,8 +271,8 @@ void performOutletAction(json *j)
       // tv.tv_sec = now;
       // sntp_sync_time(&tv);
 
-      int response = uart_write_bytes(ESP_XBEE_UART, &messageUART, messageUART->size());
-      cout << "Uart bytes written " << response << std::endl;
+      int response = uart_write_bytes(ESP_XBEE_UART, messageUART->data(), messageUART->size());
+      cout << "Uart bytes written: " << response << std::endl;
 
       break;
     }
