@@ -1,11 +1,19 @@
-#include <esp_http_server.h>
-#include <driver/gpio.h>
-#include <esp_log.h>
-#include <time.h>
+#include<esp_http_server.h>
+#include<driver/gpio.h>
+#include<esp_log.h>
+#include<time.h>
+#include<map>
+#include<vector>
+#include<xbee_api.hpp>
+#include<driver/uart.h>
+#include<queue>
+#include <map>
+#include <tuple>
+
 static const char *TAG = "HTTP Server";
 
-#define TOP_GPIO GPIO_NUM_32
-#define BOTTOM_GPIO GPIO_NUM_33
+extern std::map<std::string, std::tuple<uint16_t, uint64_t>> outletZigbeeAddress;
+extern std::queue<std::vector<uint8_t>> xbee_outgoing;
 
 //  URI Handler functions
 /* Our URI handler function to be called during GET /uri request */
@@ -13,32 +21,23 @@ esp_err_t change_rec_state(httpd_req_t *req)
 {
   if (strcmp(req->uri, "/top/on") == 0)
   {
-    // Write data to UART.
-    // char *test_str = "address top on \n";
-    // uart_write_bytes(ESP_XBEE_UART, (const char *)test_str, strlen(test_str));
+    json j = {
+      {"op", 1},
+      {"data", {{"value",1}}}};
+    
+    std::string message = j.dump();
 
-    gpio_set_level(TOP_GPIO, 1);
-    /* Send a simple response */
+    
+    std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
+    xbee_outgoing.push(*messageUART);    
+
     const char resp[] = "Top Outlet Turned On";
-    time_t now;
-    char strftime_buf[64];
-    struct tm timeinfo;
-
-    time(&now);
-    // Set timezone to Eastern Standard Time
-    setenv("TZ", "GMT+5", 1);
-    tzset();
-
-    localtime_r(&now, &timeinfo);
-    strftime(strftime_buf, sizeof(strftime_buf), "%c", &timeinfo);
-    ESP_LOGI(TAG, "The current date/time in Cleveland is: %s", strftime_buf);
 
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
   }
   else if (strcmp(req->uri, "/top/off") == 0)
   {
-    gpio_set_level(TOP_GPIO, 0);
     /* Send a simple response */
     const char resp[] = "Top Outlet Turned Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -46,7 +45,6 @@ esp_err_t change_rec_state(httpd_req_t *req)
   }
   else if (strcmp(req->uri, "/bottom/on") == 0)
   {
-    gpio_set_level(BOTTOM_GPIO, 1);
     /* Send a simple response */
     const char resp[] = "Bottom Outlet Turned On";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -54,7 +52,6 @@ esp_err_t change_rec_state(httpd_req_t *req)
   }
   else if (strcmp(req->uri, "/bottom/off") == 0)
   {
-    gpio_set_level(BOTTOM_GPIO, 0);
     /* Send a simple response */
     const char resp[] = "Bottom Outlet Turned Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
