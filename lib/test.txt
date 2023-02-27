@@ -1,0 +1,275 @@
+I (36272) xbee uart: uart[2] event:
+I (36272) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (37262) xbee uart: uart[2] event:
+I (37262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (38262) xbee uart: uart[2] event:
+I (38262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (39272) xbee uart: uart[2] event:
+I (39272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (40262) xbee uart: uart[2] event:
+I (40262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (41262) xbee uart: uart[2] event:
+I (41262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (42262) xbee uart: uart[2] event:
+I (42262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (43262) xbee uart: uart[2] event:
+I (43262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (44262) xbee uart: uart[2] event:
+I (44262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (45262) xbee uart: uart[2] event:
+I (45262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (46262) xbee uart: uart[2] event:
+I (46262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (47262) xbee uart: uart[2] event:
+I (47262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (48262) xbee uart: uart[2] event:
+I (48262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (49262) xbee uart: uart[2] event:
+I (49262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (50262) xbee uart: uart[2] event:
+I (50262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (51272) xbee uart: uart[2] event:
+I (51272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (52262) xbee uart: uart[2] event:
+I (52262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (53262) xbee uart: uart[2] event:
+I (53262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (54272) xbee uart: uart[2] event:
+I (54272) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":0}}
+I (55262) xbee uart: uart[2] event:
+I (55262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":0}}
+I (56262) xbee uart: uart[2] event:
+I (56262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (57262) xbee uart: uart[2] event:
+I (57262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (58262) xbee uart: uart[2] event:
+I (58262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (59262) xbee uart: uart[2] event:
+I (59262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (60272) xbee uart: uart[2] event:
+I (60272) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (61272) xbee uart: uart[2] event:
+I (61272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (62262) xbee uart: uart[2] event:
+I (62262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (63272) xbee uart: uart[2] event:
+I (63272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (64262) xbee uart: uart[2] event:
+I (64262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (65262) xbee uart: uart[2] event:
+I (65262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (66272) xbee uart: uart[2] event:
+I (66272) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (67262) xbee uart: uart[2] event:
+I (67262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (68262) xbee uart: uart[2] event:
+I (68262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (69272) xbee uart: uart[2] event:
+I (69272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (70262) xbee uart: uart[2] event:
+I (70262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (71262) xbee uart: uart[2] event:
+I (71262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (72262) xbee uart: uart[2] event:
+I (72262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (73262) xbee uart: uart[2] event:
+I (73262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (74262) xbee uart: uart[2] event:
+I (74262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":1}}
+I (75262) xbee uart: uart[2] event:
+I (75262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":1}}
+I (76262) xbee uart: uart[2] event:
+I (76262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (77262) xbee uart: uart[2] event:
+I (77262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (78262) xbee uart: uart[2] event:
+I (78262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (79272) xbee uart: uart[2] event:
+I (79272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (80262) xbee uart: uart[2] event:
+I (80262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (81272) xbee uart: uart[2] event:
+I (81272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (82262) xbee uart: uart[2] event:
+I (82262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (83262) xbee uart: uart[2] event:
+I (83262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (84262) xbee uart: uart[2] event:
+I (84262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (85262) xbee uart: uart[2] event:
+I (85262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (86262) xbee uart: uart[2] event:
+I (86262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (87272) xbee uart: uart[2] event:
+I (87272) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (88262) xbee uart: uart[2] event:
+I (88262) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}
+I (89262) xbee uart: uart[2] event:
+I (89262) xbee uart: [UART DATA]: 111
+Incoming frame: ~k��AO������{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}�
+here
+Log Dump{"data":{"power":5.52400016784668,"power factor":0.8889999985694885,"source":1,"time":2}}
+I (90272) xbee uart: uart[2] event:
+I (90272) xbee uart: [UART DATA]: 112
+Incoming frame: ~l��AO������{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}�
+here
+Log Dump{"data":{"power":140.3459930419922,"power factor":0.9998999834060669,"source":0,"time":2}}

@@ -13,6 +13,7 @@ static const char *GET_SNTP_TIME = "get time";
 
 extern std::queue<std::vector<uint8_t>> xbee_outgoing;
 extern std::map<std::string, std::tuple<uint16_t, uint64_t>> outletZigbeeAddress;
+extern std::map<uint64_t, std::string> zigbeeAddressOutlet;
 
 void time_sync_notification_cb(struct timeval *tv)
 {
@@ -56,30 +57,33 @@ void obtain_time()
 }
 
 // return current time
-void returnTime(json frame_overhead_){
-    // get return info 
-    uint64_t destAddr = frame_overhead_["DST64"].get<uint64_t>();
-    uint16_t destAddrLowOrder = frame_overhead_["DST16"].get<uint32_t>();
+void returnTime(json frame_overhead_)
+{
+  // get return info
+  uint64_t destAddr = frame_overhead_["DST64"].get<uint64_t>();
+  uint16_t destAddrLowOrder = frame_overhead_["DST16"].get<uint32_t>();
 
-    std::string outletName = "One";
-    outletZigbeeAddress[outletName] = std::make_tuple(destAddrLowOrder, destAddr);
-    std::cout << "Lower order Address: " << std::get<0>(outletZigbeeAddress[outletName]) << std::endl
-    << "64 Bit address" << std::get<1>(outletZigbeeAddress[outletName]) << std::endl;
+  std::string outletName = "One";
+  outletZigbeeAddress[outletName] = std::make_tuple(destAddrLowOrder, destAddr);
+  zigbeeAddressOutlet[destAddr] = outletName;
+  std::cout
+      << "Lower order Address: " << std::get<0>(outletZigbeeAddress[outletName]) << std::endl
+      << "64 Bit address" << std::get<1>(outletZigbeeAddress[outletName]) << std::endl;
 
-    // get current time
-    time_t now;
-    time(&now);
-    std::string stringTime = std::to_string(now);    
+  // get current time
+  time_t now;
+  time(&now);
+  std::string stringTime = std::to_string(now);
 
-    // json object to hold time information
-    json j = {
-        {"op", 4},
-        {"data",
-         {{"s", now}, {"us", 0}, {"tz", "EST+5EDT,M3.2.0/2,M11.1.0/2"}}}};
+  // json object to hold time information
+  json j = {
+      {"op", 4},
+      {"data",
+       {{"s", now}, {"us", 0}, {"tz", "EST+5EDT,M3.2.0/2,M11.1.0/2"}}}};
 
-    // get string representation of json object
-    std::string json_bytes = j.dump();                  
-    // add frame to outgoing xbee queue
-    std::vector<uint8_t> * frame = formTXFrame(json_bytes, destAddr, destAddrLowOrder, NULL, NULL);
-    xbee_outgoing.push(*frame);              
+  // get string representation of json object
+  std::string json_bytes = j.dump();
+  // add frame to outgoing xbee queue
+  std::vector<uint8_t> *frame = formTXFrame(json_bytes, destAddr, destAddrLowOrder, NULL, NULL);
+  xbee_outgoing.push(*frame);
 };

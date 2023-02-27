@@ -1,19 +1,28 @@
-#include<esp_http_server.h>
-#include<driver/gpio.h>
-#include<esp_log.h>
-#include<time.h>
-#include<map>
-#include<vector>
-#include<xbee_api.hpp>
-#include<driver/uart.h>
-#include<queue>
+#include <esp_http_server.h>
+#include <driver/gpio.h>
+#include <esp_log.h>
+#include <time.h>
+#include <map>
+#include <vector>
+#include <xbee_api.hpp>
+#include <driver/uart.h>
+#include <queue>
 #include <map>
 #include <tuple>
+#include <iostream>
 
 static const char *TAG = "HTTP Server";
 
 extern std::map<std::string, std::tuple<uint16_t, uint64_t>> outletZigbeeAddress;
 extern std::queue<std::vector<uint8_t>> xbee_outgoing;
+struct powerData
+{
+  float bP;
+  float bPF;
+  float tP;
+  float tPF;
+};
+extern std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataSeconds;
 
 //  URI Handler functions
 /* Our URI handler function to be called during GET /uri request */
@@ -22,14 +31,15 @@ esp_err_t change_rec_state(httpd_req_t *req)
   if (strcmp(req->uri, "/top/on") == 0)
   {
     json j = {
-      {"op", 1},
-      {"data", {{"value",1}}}};
-    
+        {"op", 1},
+        {"data", {{"value", 4}}}};
+
     std::string message = j.dump();
 
-    
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    xbee_outgoing.push(*messageUART);    
+    std::cout << "about to push" << std::endl;
+    xbee_outgoing.push(*messageUART);
+    std::cout << "after push" << std::endl;
 
     const char resp[] = "Top Outlet Turned On";
 
@@ -38,6 +48,16 @@ esp_err_t change_rec_state(httpd_req_t *req)
   }
   else if (strcmp(req->uri, "/top/off") == 0)
   {
+    json j = {
+        {"op", 1},
+        {"data", {{"value", 5}}}};
+
+    std::string message = j.dump();
+
+    std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
+    std::cout << "about to push" << std::endl;
+    xbee_outgoing.push(*messageUART);
+    std::cout << "after push" << std::endl;
     /* Send a simple response */
     const char resp[] = "Top Outlet Turned Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -45,6 +65,16 @@ esp_err_t change_rec_state(httpd_req_t *req)
   }
   else if (strcmp(req->uri, "/bottom/on") == 0)
   {
+    json j = {
+        {"op", 1},
+        {"data", {{"value", 6}}}};
+
+    std::string message = j.dump();
+
+    std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
+    std::cout << "about to push" << std::endl;
+    xbee_outgoing.push(*messageUART);
+    std::cout << "after push" << std::endl;
     /* Send a simple response */
     const char resp[] = "Bottom Outlet Turned On";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -52,9 +82,66 @@ esp_err_t change_rec_state(httpd_req_t *req)
   }
   else if (strcmp(req->uri, "/bottom/off") == 0)
   {
+    json j = {
+        {"op", 1},
+        {"data", {{"value", 7}}}};
+
+    std::string message = j.dump();
+
+    std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
+    std::cout << "about to push" << std::endl;
+    xbee_outgoing.push(*messageUART);
+    std::cout << "after push" << std::endl;
     /* Send a simple response */
     const char resp[] = "Bottom Outlet Turned Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+  }
+  else if (strcmp(req->uri, "/both/on") == 0)
+  {
+    json j = {
+        {"op", 1},
+        {"data", {{"value", 3}}}};
+
+    std::string message = j.dump();
+
+    std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
+    std::cout << "about to push" << std::endl;
+    xbee_outgoing.push(*messageUART);
+    std::cout << "after push" << std::endl;
+    /* Send a simple response */
+    const char resp[] = "Both on";
+    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+  }
+  else if (strcmp(req->uri, "/both/off") == 0)
+  {
+    json j = {
+        {"op", 1},
+        {"data", {{"value", 0}}}};
+
+    std::string message = j.dump();
+
+    std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
+    std::cout << "about to push" << std::endl;
+    xbee_outgoing.push(*messageUART);
+    std::cout << "after push" << std::endl;
+    /* Send a simple response */
+    const char resp[] = "Both Off";
+    httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+    return ESP_OK;
+  }
+  else if (strcmp(req->uri, "/both/power") == 0)
+  {
+    std::map<uint64_t, powerData>::iterator first = outletPowerDataSeconds["One"].end();
+    --first;
+    powerData pDtoSend = first->second;
+
+    std::string httpResponse = "Time: " + std::to_string(first->first) + '\n' + "Bottom Power: " + std::to_string(pDtoSend.bP) + '\n' + "Top Power: " + std::to_string(pDtoSend.tP) + '\n' + "Bottom PF: " + std::to_string(pDtoSend.bPF) + '\n' + "Top PF: " + std::to_string(pDtoSend.tPF);
+    std::cout << "Server: " << httpResponse << std::endl;
+    /* Send a simple response */
+    // const char resp[] = httpResponse;
+    httpd_resp_send(req, httpResponse.c_str(), HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
   }
   else
@@ -127,6 +214,27 @@ httpd_uri_t uri_bottom_off = {
     .handler = change_rec_state,
     .user_ctx = NULL};
 
+/* URI handler structure for  bottom receptacle off */
+httpd_uri_t uri_both_on = {
+    .uri = "/both/on",
+    .method = HTTP_GET,
+    .handler = change_rec_state,
+    .user_ctx = NULL};
+
+/* URI handler structure for  bottom receptacle off */
+httpd_uri_t uri_both_off = {
+    .uri = "/both/off",
+    .method = HTTP_GET,
+    .handler = change_rec_state,
+    .user_ctx = NULL};
+
+/* URI handler structure for top receptacle on */
+httpd_uri_t uri_both_power = {
+    .uri = "/both/power",
+    .method = HTTP_GET,
+    .handler = change_rec_state,
+    .user_ctx = NULL};
+
 /* URI handler structure for POST /uri */
 httpd_uri_t uri_post = {
     .uri = "/uri",
@@ -151,6 +259,9 @@ httpd_handle_t start_webserver(void)
     httpd_register_uri_handler(server, &uri_top_off);
     httpd_register_uri_handler(server, &uri_bottom_on);
     httpd_register_uri_handler(server, &uri_bottom_off);
+    httpd_register_uri_handler(server, &uri_both_on);
+    httpd_register_uri_handler(server, &uri_both_off);
+    httpd_register_uri_handler(server, &uri_both_power);
 
     httpd_register_uri_handler(server, &uri_post);
   }

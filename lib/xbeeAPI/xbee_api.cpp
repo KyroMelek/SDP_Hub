@@ -362,7 +362,9 @@ json *explicitRX(uint8_t *frame, uint16_t frameLength)
         for (int i = 0; i < frameLength - 18; ++i)
             data += char(frame[i + 21]);
     }
+    std::cout << "here" << std::endl;
     json tmpData = json::parse(data);
+    std::cout << "Log Dump" << tmpData.dump() << std::endl;
     json *tmp = new json{
         {"DESC", "Receive Packet"},
         {"FRAME TYPE", 0x91},
@@ -404,7 +406,7 @@ json *remoteAT(uint8_t *frame, uint16_t frameLength)
 json *readFrame(uint8_t *frame)
 {
     // return -2 if not valid
-    json *data = nullptr;
+    json *data = new json;
     if (frame[0] != 0x7E)
     {
         *data = -2;
