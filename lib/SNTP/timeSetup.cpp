@@ -66,9 +66,6 @@ void returnTime(json frame_overhead_)
   std::string outletName = "One";
   outletZigbeeAddress[outletName] = std::make_tuple(destAddrLowOrder, destAddr);
   zigbeeAddressOutlet[destAddr] = outletName;
-  std::cout
-      << "Lower order Address: " << std::get<0>(outletZigbeeAddress[outletName]) << std::endl
-      << "64 Bit address" << std::get<1>(outletZigbeeAddress[outletName]) << std::endl;
 
   // get current time
   time_t now;

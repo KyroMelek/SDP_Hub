@@ -67,8 +67,6 @@ struct powerData
 // The key in the first map is the name of the outlet, the value for the first map is another map whose key is epoch time of power data and whose value is the actual power data
 // since maps are ordered by key this ensures the power data for any given outlet in this below data structure is in order by epoch time
 std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataSeconds;
-std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataSecondsUsedForAveraging;
-std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataMinutes;
 
 // GPIO pin definitions
 #define XBEE_UART (UART_NUM_2)     // uart2 to communicate between xbee and esp32
@@ -85,15 +83,6 @@ static const char *SET_SYSTEM_TIME = "set system time";
 static const char *GET_SNTP_TIME = "get time";
 static const char *PARSE_FRAME = "parse xbee frame";
 static const char *SETUP = "setup";
-
-// struct to store maeausrements from the PWICs
-struct PWIC_measurements
-{
-    float instantaneousVoltage;
-    float instantaneousCurrent;
-    float instantaneousPower;
-    float powerFactor;
-};
 
 //---------------------------------
 // function definitions
@@ -137,10 +126,8 @@ static void xbee_uart_event_task(void *pvParameters)
             // read incoming UART data
             case UART_DATA:
                 ESP_LOGI(XBEE_TAG, "[UART DATA]: %d", eventsize);
-                uart_read_bytes(XBEE_UART, dtmp, eventsize, portMAX_DELAY); // write data to dtmp
-
+                uart_read_bytes(XBEE_UART, dtmp, eventsize, portMAX_DELAY);       // write data to dtmp
                 xbee_incoming.push(std::vector<uint8_t>(dtmp, dtmp + eventsize)); // push frame to incoming xbee queue
-
                 break;
 
             // HW FIFO overflow detected
@@ -186,7 +173,6 @@ static void xbee_uart_event_task(void *pvParameters)
 // perform an action in the hub based on the contents of recieved frame
 void performHubAction(json *json_object)
 {
-    std::cout << "Dump in perform hub action" << json_object->dump() << std::endl;
     json frame_payload = (*json_object)["FRAME DATA"];
     json frame_overhead = (*json_object)["FRAME OVERHEAD"];
     if (!frame_payload["op"].is_null() && frame_payload["op"].is_number())
@@ -200,22 +186,21 @@ void performHubAction(json *json_object)
         // process measurements
         case 101:
         {
-            std::cout << "Inside of case 101" << std::endl;
-            powerData *pd = new powerData;
+            powerData pd = {0}; // new powerData;
             json bottom = frame_payload["data"]["b"];
             json top = frame_payload["data"]["t"];
 
-            pd->bP = bottom["p"].get<double>() / SIGFIGS;
-            pd->bPF = bottom["f"].get<double>() / SIGFIGS;
-            pd->tP = top["p"].get<double>() / SIGFIGS;
-            pd->tPF = top["f"].get<double>() / SIGFIGS;
+            pd.bP = bottom["p"].get<double>() / SIGFIGS;
+            pd.bPF = bottom["f"].get<double>() / SIGFIGS;
+            pd.tP = top["p"].get<double>() / SIGFIGS;
+            pd.tPF = top["f"].get<double>() / SIGFIGS;
 
             int time = frame_payload["data"]["s"].get<int>();
 
             std::string outletName = zigbeeAddressOutlet[frame_overhead["DST64"].get<uint64_t>()];
 
-            outletPowerDataSeconds[outletName][time] = *pd;
-            // outletPowerDataSecondsUsedForAveraging[outletName][time] = *pd;
+            outletPowerDataSeconds[outletName][time] = pd;
+            // delete pd; // Should pd be freed since above data struct has its value?
 
             std::cout << "Bottom Power: " << outletPowerDataSeconds[outletName][time].bP << std::endl
                       << "Top Power: " << outletPowerDataSeconds[outletName][time].tP << std::endl
@@ -284,18 +269,8 @@ static void parseFrame(void *pvParameters)
             std::copy(xbee_frame.begin(), xbee_frame.end(), carray);
             // json with all information about xbee frame
 
-            std::cout << "Incoming frame: ";
-            for (int i = 0; i < dataSize; i++)
-            {
-                std::cout << carray[i];
-            }
-
-            std::cout << std::endl;
-
             json *j = new json;
             j = readFrame(carray);
-
-            // std::cout << "Incoming frame " << j->dump() << std::endl;
             //  handle error cases
             //  unrecognized frame
             if (*j == -1)
@@ -352,77 +327,23 @@ static void sendFrame(void *pvParameters)
         // work on existing xbee frames
         while (!xbee_outgoing.empty())
         {
-            std::cout << "Inside while loop for sending" << std::endl;
             // get oldest xbee frame
             std::vector<uint8_t> xbee_frame = xbee_outgoing.front();
             // remove xbee frame from queue
             xbee_outgoing.pop();
             // copy vector to a uint8_t array
             uart_write_bytes(XBEE_UART, xbee_frame.data(), xbee_frame.size());
-            std::cout << "Data is: ";
-            for (int i = 0; i < xbee_frame.size(); i++)
-            {
-                std::cout << xbee_frame[i];
-            }
-            std::cout << std::endl
-                      << "sent something" << std::endl;
             vTaskDelay(1);
         }
         vTaskDelay(1);
     }
 };
 
-static void setMinuteQueues(void *pvParameters)
-{
-    bool aligned = false;
-
-    for (;;)
-    {
-        time_t now;
-        time(&now);
-
-        time_t currentMinute = now - (now % 60);
-        time_t nextMin = currentMinute + 60;
-        time_t previousMin = currentMinute - 60;
-
-        for (auto outlet : outletPowerDataSeconds)
-        {
-            while (!outletPowerDataSeconds.empty())
-            {
-                auto itr = outlet.second.end();
-                itr--;
-                if (nextMin <= itr->first)
-                {
-                    int samples = 0;
-                    float runningBP = 0;
-                    float runningTP = 0;
-                    float bPF = 0;
-                    float tPF = 0;
-                    for (auto secondsMeasurements : outlet.second)
-                    {
-                        samples++;
-                        runningBP += secondsMeasurements.second.bP;
-                        runningTP += secondsMeasurements.second.tP;
-                        bPF = secondsMeasurements.second.bPF;
-                        tPF = secondsMeasurements.second.tPF;
-                    }
-                    float BPAvg = runningBP / samples;
-                    float TPAvg = runningTP / samples;
-                    powerData pData = {.bP = BPAvg, .bPF = bPF, .tP = TPAvg, .tPF = tPF};
-                    outletPowerDataMinutes[outlet.first][currentMinute] = pData;
-                    outletPowerDataSeconds.
-                }
-            }
-            outletPowerDataSeconds.emp
-        }
-    }
-}
-
 // main function
 extern "C" void app_main()
 {
-    std::queue<std::vector<uint8_t>> empty;
-    std::swap(xbee_outgoing, empty);
+    // std::queue<std::vector<uint8_t>> empty;
+    // std::swap(xbee_outgoing, empty);
 
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
@@ -442,7 +363,6 @@ extern "C" void app_main()
     xbee_uart_init(); // initalize xbee UART connection
     uart_flush_input(XBEE_UART);
     uart_flush(XBEE_UART);
-    // vTaskDelay(pdMS_TO_TICKS(1000));
 
     // webserver
     start_webserver();
