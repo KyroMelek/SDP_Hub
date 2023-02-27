@@ -22,7 +22,7 @@ struct powerData
   float tP;
   float tPF;
 };
-extern std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataSeconds;
+extern std::map<std::string, std::pair<uint64_t, powerData>> outletPowerDataSeconds;
 
 //  URI Handler functions
 /* Our URI handler function to be called during GET /uri request */
@@ -133,11 +133,9 @@ esp_err_t change_rec_state(httpd_req_t *req)
   }
   else if (strcmp(req->uri, "/both/power") == 0)
   {
-    std::map<uint64_t, powerData>::iterator first = outletPowerDataSeconds["One"].end();
-    --first;
-    powerData pDtoSend = first->second;
+    std::pair<uint64_t, powerData> first = outletPowerDataSeconds["One"];
 
-    std::string httpResponse = "Time: " + std::to_string(first->first) + '\n' + "Bottom Power: " + std::to_string(pDtoSend.bP) + '\n' + "Top Power: " + std::to_string(pDtoSend.tP) + '\n' + "Bottom PF: " + std::to_string(pDtoSend.bPF) + '\n' + "Top PF: " + std::to_string(pDtoSend.tPF);
+    std::string httpResponse = "Time: " + std::to_string(first.first) + '\n' + "Bottom Power: " + std::to_string(first.second.bP) + '\n' + "Top Power: " + std::to_string(first.second.tP) + '\n' + "Bottom PF: " + std::to_string(first.second.bPF) + '\n' + "Top PF: " + std::to_string(first.second.tPF);
     std::cout << "Server: " << httpResponse << std::endl;
     /* Send a simple response */
     // const char resp[] = httpResponse;
