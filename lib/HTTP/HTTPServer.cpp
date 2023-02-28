@@ -1,5 +1,4 @@
 #include <esp_http_server.h>
-#include <driver/gpio.h>
 #include <esp_log.h>
 #include <time.h>
 #include <map>
@@ -37,9 +36,8 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::string message = j.dump();
 
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    std::cout << "about to push" << std::endl;
+
     xbee_outgoing.push(*messageUART);
-    std::cout << "after push" << std::endl;
 
     const char resp[] = "Top Outlet Turned On";
 
@@ -55,9 +53,9 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::string message = j.dump();
 
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    std::cout << "about to push" << std::endl;
+
     xbee_outgoing.push(*messageUART);
-    std::cout << "after push" << std::endl;
+
     /* Send a simple response */
     const char resp[] = "Top Outlet Turned Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -72,9 +70,9 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::string message = j.dump();
 
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    std::cout << "about to push" << std::endl;
+
     xbee_outgoing.push(*messageUART);
-    std::cout << "after push" << std::endl;
+
     /* Send a simple response */
     const char resp[] = "Bottom Outlet Turned On";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -89,9 +87,9 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::string message = j.dump();
 
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    std::cout << "about to push" << std::endl;
+
     xbee_outgoing.push(*messageUART);
-    std::cout << "after push" << std::endl;
+
     /* Send a simple response */
     const char resp[] = "Bottom Outlet Turned Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -106,9 +104,9 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::string message = j.dump();
 
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    std::cout << "about to push" << std::endl;
+
     xbee_outgoing.push(*messageUART);
-    std::cout << "after push" << std::endl;
+
     /* Send a simple response */
     const char resp[] = "Both on";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -123,9 +121,9 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::string message = j.dump();
 
     std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress["One"]), std::get<0>(outletZigbeeAddress["One"]), NULL, NULL);
-    std::cout << "about to push" << std::endl;
+
     xbee_outgoing.push(*messageUART);
-    std::cout << "after push" << std::endl;
+
     /* Send a simple response */
     const char resp[] = "Both Off";
     httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -136,7 +134,7 @@ esp_err_t change_rec_state(httpd_req_t *req)
     std::pair<uint64_t, powerData> first = outletPowerDataSeconds["One"];
 
     std::string httpResponse = "Time: " + std::to_string(first.first) + '\n' + "Bottom Power: " + std::to_string(first.second.bP) + '\n' + "Top Power: " + std::to_string(first.second.tP) + '\n' + "Bottom PF: " + std::to_string(first.second.bPF) + '\n' + "Top PF: " + std::to_string(first.second.tPF);
-    std::cout << "Server: " << httpResponse << std::endl;
+    // std::cout << "Server: " << httpResponse << std::endl;
     /* Send a simple response */
     // const char resp[] = httpResponse;
     httpd_resp_send(req, httpResponse.c_str(), HTTPD_RESP_USE_STRLEN);

@@ -67,7 +67,7 @@ struct powerData
 // The key in the first map is the name of the outlet, the value for the first map is another map whose key is epoch time of power data and whose value is the actual power data
 // since maps are ordered by key this ensures the power data for any given outlet in this below data structure is in order by epoch time
 std::map<std::string, std::pair<uint64_t, powerData>> outletPowerDataSeconds;
-std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataSecondsUsedForAveraging;
+std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataSecondsUsedForAveraging = {};
 std::map<std::string, std::map<uint64_t, powerData>> outletPowerDataMinutes;
 
 SemaphoreHandle_t secondsQueue;
@@ -188,7 +188,6 @@ static void xbee_uart_event_task(void *pvParameters)
 // perform an action in the hub based on the contents of recieved frame
 void performHubAction(json *json_object)
 {
-    std::cout << "Dump in perform hub action" << json_object->dump() << std::endl;
     json frame_payload = (*json_object)["FRAME DATA"];
     json frame_overhead = (*json_object)["FRAME OVERHEAD"];
     if (!frame_payload["op"].is_null() && frame_payload["op"].is_number())
@@ -202,27 +201,28 @@ void performHubAction(json *json_object)
         // process measurements
         case 101:
         {
-            std::cout << "Inside of case 101" << std::endl;
-            powerData *pd = new powerData;
+            powerData pd = {};
             json bottom = frame_payload["data"]["b"];
             json top = frame_payload["data"]["t"];
 
-            pd->bP = bottom["p"].get<double>() / SIGFIGS;
-            pd->bPF = bottom["f"].get<double>() / SIGFIGS;
-            pd->tP = top["p"].get<double>() / SIGFIGS;
-            pd->tPF = top["f"].get<double>() / SIGFIGS;
+            pd.bP = bottom["p"].get<double>() / SIGFIGS;
+            pd.bPF = bottom["f"].get<double>() / SIGFIGS;
+            pd.tP = top["p"].get<double>() / SIGFIGS;
+            pd.tPF = top["f"].get<double>() / SIGFIGS;
 
             int time = frame_payload["data"]["s"].get<int>();
 
             std::string outletName = zigbeeAddressOutlet[frame_overhead["DST64"].get<uint64_t>()];
 
-            outletPowerDataSeconds[outletName] = std::make_pair(time, *pd);
-            while (!xSemaphoreTake(secondsQueue, 10))
-            {
-                vTaskDelay(1);
-            }
-            outletPowerDataSecondsUsedForAveraging[outletName][time] = *pd;
-            xSemaphoreGive(secondsQueue);
+            outletPowerDataSeconds[outletName] = std::make_pair(time, pd);
+            // while (!xSemaphoreTake(secondsQueue, 10))
+            // {
+            //     vTaskDelay(1);
+            // }
+            std::cout << "This is the time getting added from perform hub action: " << time << std::endl;
+            outletPowerDataSecondsUsedForAveraging[outletName][time] = pd;
+            std::cout << "Size from within perform hub action: " << outletPowerDataSecondsUsedForAveraging[outletName].size() << std::endl;
+            // xSemaphoreGive(secondsQueue);
 
             // std::cout << "Bottom Power: " << outletPowerDataSeconds[outletName][time].bP << std::endl
             //           << "Top Power: " << outletPowerDataSeconds[outletName][time].tP << std::endl
@@ -291,14 +291,6 @@ static void parseFrame(void *pvParameters)
             std::copy(xbee_frame.begin(), xbee_frame.end(), carray);
             // json with all information about xbee frame
 
-            std::cout << "Incoming frame: ";
-            for (int i = 0; i < dataSize; i++)
-            {
-                std::cout << carray[i];
-            }
-
-            std::cout << std::endl;
-
             json *j = new json;
             j = readFrame(carray);
 
@@ -359,20 +351,12 @@ static void sendFrame(void *pvParameters)
         // work on existing xbee frames
         while (!xbee_outgoing.empty())
         {
-            std::cout << "Inside while loop for sending" << std::endl;
             // get oldest xbee frame
             std::vector<uint8_t> xbee_frame = xbee_outgoing.front();
             // remove xbee frame from queue
             xbee_outgoing.pop();
             // copy vector to a uint8_t array
             uart_write_bytes(XBEE_UART, xbee_frame.data(), xbee_frame.size());
-            std::cout << "Data is: ";
-            for (int i = 0; i < xbee_frame.size(); i++)
-            {
-                std::cout << xbee_frame[i];
-            }
-            std::cout << std::endl
-                      << "sent something" << std::endl;
             vTaskDelay(1);
         }
         vTaskDelay(1);
@@ -381,65 +365,97 @@ static void sendFrame(void *pvParameters)
 
 static void setMinuteQueues(void *pvParameters)
 {
-    std::cout << "Here 0" << std::endl;
     for (;;)
     {
         time_t now;
         time(&now);
-        std::cout << "Here 1" << std::endl;
+        // get rid of - 60 later
+        now -= 60;
         time_t currentMinute = now - (now % 60);
         time_t nextMin = currentMinute + 60;
-        for (auto outlet : outletPowerDataSecondsUsedForAveraging)
+
+        // If we have outlets with data
+        if (!outletPowerDataSecondsUsedForAveraging.empty())
         {
-            std::cout << "Here 2" << std::endl;
-            while (!outletPowerDataSecondsUsedForAveraging.empty())
+            auto itr3 = outletPowerDataSecondsUsedForAveraging.begin();
+            while (!itr3->second.empty())
             {
-                auto itr = outlet.second.end();
-                itr--;
+                std::cout << "Size is: " << itr3->second.size() << std::endl;
+                auto itr = itr3->second.end();
+                --itr;
+                std::cout << "next minute is: " << nextMin << std::endl;
+                std::cout << "Time of Most recent measurement";
                 if (nextMin <= itr->first)
                 {
-                    std::cout << "Here 3" << std::endl;
-                    int samples = 0;
-                    float runningBP = 0;
-                    float runningTP = 0;
-                    float bPF = 0;
-                    float tPF = 0;
-                    for (auto secondsMeasurements : outlet.second)
-                    {
-                        samples++;
-                        runningBP += secondsMeasurements.second.bP;
-                        runningTP += secondsMeasurements.second.tP;
-                        bPF = secondsMeasurements.second.bPF;
-                        tPF = secondsMeasurements.second.tPF;
-                    }
-                    while (!xSemaphoreTake(secondsQueue, portMAX_DELAY))
-                    {
-                        vTaskDelay(1);
-                    }
-                    float BPAvg = runningBP / samples;
-                    float TPAvg = runningTP / samples;
-                    powerData pData = {.bP = BPAvg, .bPF = bPF, .tP = TPAvg, .tPF = tPF};
-                    outletPowerDataMinutes[outlet.first][currentMinute] = pData;
-
-                    outletPowerDataSecondsUsedForAveraging[outlet.first].erase(outletPowerDataSecondsUsedForAveraging[outlet.first].begin(), outletPowerDataSecondsUsedForAveraging[outlet.first].end());
-                    xSemaphoreGive(secondsQueue);
+                    std::cout << "Condition met" << std::endl;
                 }
+                vTaskDelay(pdMS_TO_TICKS(1000));
             }
+            vTaskDelay(1);
         }
+        vTaskDelay(1);
+        // for (auto outlet : outletPowerDataSecondsUsedForAveraging)
+        // {
+        //     std::cout << "Here 2" << std::endl;
+        //     std::cout << "Number of Measuremnts: " << outlet.second.size() << std::endl;
+        //     // while (!outlet.second.empty())
+        //     // {
+        //     //     // while (!xSemaphoreTake(secondsQueue, portMAX_DELAY))
+        //     //     // {
+        //     //     //     vTaskDelay(1);
+        //     //     // }
+        //     //     std::cout << "Number of Measuremnts: " << outlet.second.size() << std::endl;
+        //     //     auto itr = outlet.second.end();
+        //     //     itr--;
+        //     //     std::cout << "Next minute: " << nextMin << std::endl
+        //     //               << "Time of incoming measurement: " << itr->first << std::endl;
+        //     //     if (nextMin <= itr->first)
+        //     //     {
+        //     //         std::cout << "Here 3" << std::endl;
+        //     //         int samples = 0;
+        //     //         float runningBP = 0;
+        //     //         float runningTP = 0;
+        //     //         float bPF = 0;
+        //     //         float tPF = 0;
+        //     //         for (auto secondsMeasurements : outlet.second)
+        //     //         {
+        //     //             samples++;
+        //     //             runningBP += secondsMeasurements.second.bP;
+        //     //             runningTP += secondsMeasurements.second.tP;
+        //     //             bPF = secondsMeasurements.second.bPF;
+        //     //             tPF = secondsMeasurements.second.tPF;
+        //     //         }
+
+        //     //         float BPAvg = runningBP / samples;
+        //     //         float TPAvg = runningTP / samples;
+        //     //         powerData pData = {.bP = BPAvg, .bPF = bPF, .tP = TPAvg, .tPF = tPF};
+        //     //         outletPowerDataMinutes[outlet.first][currentMinute] = pData;
+        //     //         outletPowerDataSecondsUsedForAveraging[outlet.first].erase(outletPowerDataSecondsUsedForAveraging[outlet.first].begin(), outletPowerDataSecondsUsedForAveraging[outlet.first].end());
+        //     //     }
+        //     //     // xSemaphoreGive(secondsQueue);
+        //     //     vTaskDelay(1);
+        //     // }
+
+        //     vTaskDelay(1);
+        // }
     }
 }
 
 static void printMinutes(void *pvParameters)
 {
-    while (!outletPowerDataMinutes.empty())
+    for (;;)
     {
-        for (auto minutesMeasurements : outletPowerDataMinutes)
+        while (!outletPowerDataMinutes.empty())
         {
-            for (auto data : minutesMeasurements.second)
+            for (auto minutesMeasurements : outletPowerDataMinutes)
             {
-                std::cout << data.second.bP << std::endl;
+                for (auto data : minutesMeasurements.second)
+                {
+                    std::cout << data.second.bP << std::endl;
+                }
             }
         }
+        vTaskDelay(1);
     }
 }
 
@@ -474,10 +490,9 @@ extern "C" void app_main()
 
     secondsQueue = xSemaphoreCreateBinary();
     // begin multitasking
-    xTaskCreatePinnedToCore(xbee_uart_event_task, "handle xbee", 8 * 1024, NULL, 12, NULL, 0);
-    xTaskCreatePinnedToCore(parseFrame, "parse incoming frames", 2 * 32768, NULL, 13, NULL, 0);
-    xTaskCreatePinnedToCore(sendFrame, "parse incoming frames", 32768, NULL, 13, NULL, 0);
-    std::cout << "Are we even here" << std::endl;
-    xTaskCreatePinnedToCore(setMinuteQueues, "setMinuteQueues", 32768, NULL, 18, NULL, 1);
-    xTaskCreatePinnedToCore(printMinutes, "printMinutes", 32768, NULL, 15, NULL, 1);
+    xTaskCreate(xbee_uart_event_task, "handle xbee", 8 * 1024, NULL, 12, NULL);
+    xTaskCreate(parseFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL);
+    xTaskCreate(sendFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL);
+    xTaskCreate(setMinuteQueues, "setMinuteQueues", 32768 / 2, NULL, 18, NULL);
+    xTaskCreate(printMinutes, "printMinutes", 4092, NULL, 15, NULL);
 }
