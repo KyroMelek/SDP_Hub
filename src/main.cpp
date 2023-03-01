@@ -450,10 +450,6 @@ static void outletDataProcessing(void *pvParameters)
     bool initialized = false;
     for (;;)
     {
-        std::cout << "Size from data processing " << outletPowerDataSecondsUsedForAveraging.size() << std::endl;
-        auto sizeOfDataitr = outletPowerDataSecondsUsedForAveraging.begin();
-        int size = sizeOfDataitr->second.size();
-        std::cout << "Size of data from data processing " << size << std::endl;
         if (!outletPowerDataSecondsUsedForAveraging.empty() && !initialized)
         {
             std::cout << "We should not be here right away" << std::endl;
@@ -472,7 +468,7 @@ static void outletDataProcessing(void *pvParameters)
         {
             --itr;
         }
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
 
