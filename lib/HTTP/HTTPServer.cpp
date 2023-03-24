@@ -11,8 +11,7 @@
 
 static const char *TAG = "HTTP Server";
 
-extern std::map<std::string, std::tuple<uint16_t, uint64_t>> outletZigbeeAddress;
-extern std::map<uint64_t, std::string> zigbeeAddressOutlet;
+extern std::map<uint64_t, uint16_t> outletZigbeeAddresses;
 extern std::queue<std::vector<uint8_t>> xbee_outgoing;
 struct powerData
 {
@@ -21,7 +20,7 @@ struct powerData
   float tP;
   float tPF;
 };
-extern std::map<std::string, std::pair<uint64_t, powerData>> outletPowerDataSeconds;
+extern std::map<uint64_t, std::pair<uint64_t, powerData>> outletPowerDataSeconds;
 
 //  URI Handler functions
 /* Our URI handler function to be called during GET /uri request */
@@ -41,7 +40,7 @@ esp_err_t top_on_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
@@ -50,7 +49,9 @@ esp_err_t top_on_handler(httpd_req_t *req)
             {"op", 1},
             {"data", {{"value", 4}}}};
         std::string message = j.dump();
-        std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress[param]), std::get<0>(outletZigbeeAddress[param]), NULL, NULL);
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> *messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
         xbee_outgoing.push(*messageUART);
         const char resp[] = "Top Outlet Turned On";
         httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
@@ -85,7 +86,7 @@ esp_err_t top_off_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
@@ -94,7 +95,9 @@ esp_err_t top_off_handler(httpd_req_t *req)
             {"data", {{"value", 5}}}};
 
         std::string message = j.dump();
-        std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress[param]), std::get<0>(outletZigbeeAddress[param]), NULL, NULL);
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> *messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
 
         xbee_outgoing.push(*messageUART);
 
@@ -132,7 +135,7 @@ esp_err_t bottom_on_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
@@ -141,8 +144,9 @@ esp_err_t bottom_on_handler(httpd_req_t *req)
             {"data", {{"value", 6}}}};
 
         std::string message = j.dump();
-
-        std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress[param]), std::get<0>(outletZigbeeAddress[param]), NULL, NULL);
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> *messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
 
         xbee_outgoing.push(*messageUART);
 
@@ -179,7 +183,7 @@ esp_err_t bottom_off_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
@@ -188,7 +192,9 @@ esp_err_t bottom_off_handler(httpd_req_t *req)
             {"data", {{"value", 7}}}};
         std::string message = j.dump();
 
-        std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress[param]), std::get<0>(outletZigbeeAddress[param]), NULL, NULL);
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> *messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
 
         xbee_outgoing.push(*messageUART);
 
@@ -225,7 +231,7 @@ esp_err_t both_on_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
@@ -235,7 +241,9 @@ esp_err_t both_on_handler(httpd_req_t *req)
 
         std::string message = j.dump();
 
-        std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress[param]), std::get<0>(outletZigbeeAddress[param]), NULL, NULL);
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> *messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
 
         xbee_outgoing.push(*messageUART);
 
@@ -272,7 +280,7 @@ esp_err_t both_off_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
@@ -281,7 +289,9 @@ esp_err_t both_off_handler(httpd_req_t *req)
             {"data", {{"value", 0}}}};
 
         std::string message = j.dump();
-        std::vector<uint8_t> *messageUART = formTXFrame(message, std::get<1>(outletZigbeeAddress[param]), std::get<0>(outletZigbeeAddress[param]), NULL, NULL);
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> *messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
         xbee_outgoing.push(*messageUART);
         /* Send a simple response */
         const char resp[] = "Both Off";
@@ -316,15 +326,17 @@ esp_err_t both_power_handler(httpd_req_t *req)
       ESP_LOGI(TAG, "Found URL query => %s", buf);
       char param[128];
       esp_err_t result;
-      result = httpd_query_key_value(buf, "Name", param, sizeof(param));
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
       /* Get value of expected key from query string */
       if (result == ESP_OK)
       {
-        std::pair<uint64_t, powerData> first = outletPowerDataSeconds[param];
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::pair<uint64_t, powerData> firstMeasurement = outletPowerDataSeconds[outletAddr];
 
         std::string name = param;
-        std::string httpResponse = "Name: " + name + "Time: " + std::to_string(first.first) + '\n' + "Bottom Power: " + std::to_string(first.second.bP) + '\n' + "Top Power: " + std::to_string(first.second.tP) + '\n' + "Bottom PF: " + std::to_string(first.second.bPF) + '\n' + "Top PF: " + std::to_string(first.second.tPF);
-        // std::cout << "Server: " << httpResponse << std::endl;
+        std::string httpResponse = "Name: " + name + "Time: " + std::to_string(firstMeasurement.first) + '\n' + "Bottom Power: " + std::to_string(firstMeasurement.second.bP) + '\n' + "Top Power: " + std::to_string(firstMeasurement.second.tP) + '\n' + "Bottom PF: " + std::to_string(firstMeasurement.second.bPF) + '\n' + "Top PF: " + std::to_string(firstMeasurement.second.tPF);
+
         /* Send a simple response */
         // const char resp[] = httpResponse;
         httpd_resp_send(req, httpResponse.c_str(), HTTPD_RESP_USE_STRLEN);
@@ -345,7 +357,7 @@ esp_err_t both_power_handler(httpd_req_t *req)
 /* Our URI handler function to be called during GET /uri request */
 esp_err_t all_outlets(httpd_req_t *req)
 {
-  json j = zigbeeAddressOutlet;
+  json j = outletZigbeeAddresses;
   std::string httpResponse = j.dump();
   // std::cout << "Server: " << httpResponse << std::endl;
   /* Send a simple response */
@@ -354,52 +366,52 @@ esp_err_t all_outlets(httpd_req_t *req)
   return ESP_OK;
 }
 
-//  URI Handler functions
-/* Our URI handler function to be called during GET /uri request */
-esp_err_t name_outlet(httpd_req_t *req)
-{
-  char *buf;
-  size_t buf_len;
-  /* Read URL query string length and allocate memory for length + 1,
-   * extra byte for null termination */
-  buf_len = httpd_req_get_url_query_len(req) + 1;
-  if (buf_len > 1)
-  {
-    buf = new char[buf_len];
-    if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
-    {
-      ESP_LOGI(TAG, "Found URL query => %s", buf);
-      char param[128];
-      char param2[128];
-      esp_err_t result;
-      esp_err_t result2;
-      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
-      result2 = httpd_query_key_value(buf, "Name", param2, sizeof(param2));
-      /* Get value of expected key from query string */
-      if (result == ESP_OK && result2 == ESP_OK)
-      {
-        std::string oldName = zigbeeAddressOutlet[std::stoi(param)];
-        zigbeeAddressOutlet[std::stoi(param)] = param2;
-        auto addresses = outletZigbeeAddress[oldName];
-        outletZigbeeAddress.erase(oldName);
-        outletZigbeeAddress[param2] = addresses;
-        std::string nameParam = zigbeeAddressOutlet[std::stoi(param)];
-        std::string addressparam = std::to_string(std::get<1>(outletZigbeeAddress[param2]));
-        std::string httpResponse = "Outled Named Successfully with Name: " + nameParam + "for Address: " + addressparam;
-        httpd_resp_send(req, httpResponse.c_str(), HTTPD_RESP_USE_STRLEN);
-        return ESP_OK;
-      }
-      else
-      {
-        std::cout << "Result1 is: " << result << std::endl;
-        std::cout << "Result2 is: " << result2 << std::endl;
-        return ESP_FAIL;
-      }
-    }
-    free(buf);
-  }
-  return ESP_FAIL;
-}
+// //  URI Handler functions
+// /* Our URI handler function to be called during GET /uri request */
+// esp_err_t name_outlet(httpd_req_t *req)
+// {
+//   char *buf;
+//   size_t buf_len;
+//   /* Read URL query string length and allocate memory for length + 1,
+//    * extra byte for null termination */
+//   buf_len = httpd_req_get_url_query_len(req) + 1;
+//   if (buf_len > 1)
+//   {
+//     buf = new char[buf_len];
+//     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
+//     {
+//       ESP_LOGI(TAG, "Found URL query => %s", buf);
+//       char param[128];
+//       char param2[128];
+//       esp_err_t result;
+//       esp_err_t result2;
+//       result = httpd_query_key_value(buf, "Address", param, sizeof(param));
+//       result2 = httpd_query_key_value(buf, "Name", param2, sizeof(param2));
+//       /* Get value of expected key from query string */
+//       if (result == ESP_OK && result2 == ESP_OK)
+//       {
+//         std::string oldName = zigbeeAddressOutlet[std::stoi(param)];
+//         zigbeeAddressOutlet[std::stoi(param)] = param2;
+//         auto addresses = outletZigbeeAddress[oldName];
+//         outletZigbeeAddress.erase(oldName);
+//         outletZigbeeAddress[param2] = addresses;
+//         std::string nameParam = zigbeeAddressOutlet[std::stoi(param)];
+//         std::string addressparam = std::to_string(std::get<1>(outletZigbeeAddress[param2]));
+//         std::string httpResponse = "Outled Named Successfully with Name: " + nameParam + "for Address: " + addressparam;
+//         httpd_resp_send(req, httpResponse.c_str(), HTTPD_RESP_USE_STRLEN);
+//         return ESP_OK;
+//       }
+//       else
+//       {
+//         std::cout << "Result1 is: " << result << std::endl;
+//         std::cout << "Result2 is: " << result2 << std::endl;
+//         return ESP_FAIL;
+//       }
+//     }
+//     free(buf);
+//   }
+//   return ESP_FAIL;
+// }
 
 /* Our URI handler function to be called during POST /uri request */
 esp_err_t post_handler(httpd_req_t *req)
@@ -492,12 +504,14 @@ httpd_uri_t uri_all_outlets = {
     .method = HTTP_GET,
     .handler = all_outlets,
     .user_ctx = NULL};
-/* URI handler structure for top receptacle on */
-httpd_uri_t uri_name_outlet = {
-    .uri = "/nameOutlet",
-    .method = HTTP_GET,
-    .handler = name_outlet,
-    .user_ctx = NULL};
+
+// /* URI handler structure for top receptacle on */
+// httpd_uri_t uri_name_outlet = {
+//     .uri = "/nameOutlet",
+//     .method = HTTP_GET,
+//     .handler = name_outlet,
+//     .user_ctx = NULL};
+
 /* URI handler structure for POST /uri */
 httpd_uri_t uri_post = {
     .uri = "/uri",
@@ -526,7 +540,7 @@ httpd_handle_t start_webserver(void)
     httpd_register_uri_handler(server, &uri_both_off);
     httpd_register_uri_handler(server, &uri_both_power);
     httpd_register_uri_handler(server, &uri_all_outlets);
-    httpd_register_uri_handler(server, &uri_name_outlet);
+    // httpd_register_uri_handler(server, &uri_name_outlet);
 
     httpd_register_uri_handler(server, &uri_post);
   }
