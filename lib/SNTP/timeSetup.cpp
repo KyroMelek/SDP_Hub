@@ -79,6 +79,6 @@ void returnTime(json frame_overhead_)
   // get string representation of json object
   std::string json_bytes = j.dump();
   // add frame to outgoing xbee queue
-  std::vector<uint8_t> *frame = formTXFrame(json_bytes, destAddr, destAddrLowOrder, NULL, NULL);
-  xbee_outgoing.push(*frame);
+  std::vector<uint8_t> frame = formTXFrame(json_bytes, destAddr, destAddrLowOrder, NULL, NULL);
+  xbee_outgoing.push(frame);
 };

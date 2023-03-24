@@ -67,7 +67,6 @@ struct powerData
 // since maps are ordered by key this ensures the power data for any given outlet in this below data structure is in order by epoch time
 std::map<uint64_t, std::pair<uint64_t, powerData>> outletPowerDataSeconds;
 std::map<uint64_t, std::map<uint64_t, powerData>> outletPowerDataSecondsUsedForAveraging = {};
-std::map<uint64_t, std::map<uint64_t, powerData>> outletPowerDataMinutes = {};
 
 SemaphoreHandle_t secondsQueue;
 
@@ -212,9 +211,13 @@ void performHubAction(json *json_object)
             int time = frame_payload["data"]["s"].get<int>();
 
             uint64_t ZigBAddLong = frame_overhead["DST64"].get<uint64_t>();
-
             outletPowerDataSeconds[ZigBAddLong] = std::make_pair(time, pd);
             outletPowerDataSecondsUsedForAveraging[ZigBAddLong][time] = pd;
+
+            std::cout << "Bottom Power: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][time].bP << std::endl
+                      << "Top Power: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][time].tP << std::endl
+                      << "Bottom PF: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][time].bPF << std::endl
+                      << "Top PF: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][time].tPF << std::endl;
 
             break;
         }
@@ -271,23 +274,16 @@ static void parseFrame(void *pvParameters)
             // remove xbee frame from queue
             xbee_incoming.pop();
             // copy vector to a uint8_t array
-            size_t dataSize = xbee_frame.size();
-            uint8_t *carray = new uint8_t[dataSize];
-            std::copy(xbee_frame.begin(), xbee_frame.end(), carray);
             // json with all information about xbee frame
-
-            json *j = new json;
-            j = readFrame(carray);
-
-            // std::cout << "Incoming frame " << j->dump() << std::endl;
+            json j = readFrame(xbee_frame.data());
             //  handle error cases
             //  unrecognized frame
-            if (*j == -1)
+            if (j == -1)
             {
                 ESP_LOGI(PARSE_FRAME, "recieved an unrecognized frame");
             }
             // invalid frame
-            else if (*j == -2)
+            else if (j == -2)
             {
                 ESP_LOGI(PARSE_FRAME, "recieved an invalid frame");
             }
@@ -295,33 +291,24 @@ static void parseFrame(void *pvParameters)
             else
             {
                 // get type of frame
-                uint8_t frameType = j->at("FRAME TYPE").get<int>();
-                // should I change these to dynamiclly allocated vars????
-                // json frame_payload = (*j)["FRAME DATA"];
-                // json frame_overhead = (*j)["FRAME OVERHEAD"];
-                // switch based on type of frame
+                uint8_t frameType = j["FRAME TYPE"].get<int>();
                 switch (frameType)
                 {
                 // rx response                                  -- transmit request will include data -> means this is an outlet action
                 case 0x90:
-                    performHubAction(j);
+                    performHubAction(&j);
                     break;
 
                 // explicit rx response                         -- transmit request will include data -> means this is an outlet action
                 case 0x91:
-                    performHubAction(j);
+                    performHubAction(&j);
                     break;
-
-                // add support for xbee configuration???
-
                 // all other cases                              -- other operations deal with XBee behavior -> do not need ESP32's attention
                 default:
                     break;
                 };
                 vTaskDelay(1);
             }
-            delete[] carray;
-            delete j;
             vTaskDelay(1);
         }
         vTaskDelay(1);
@@ -341,12 +328,28 @@ static void sendFrame(void *pvParameters)
             // remove xbee frame from queue
             xbee_outgoing.pop();
             // copy vector to a uint8_t array
-            uart_write_bytes(XBEE_UART, xbee_frame.data(), xbee_frame.size());
             vTaskDelay(1);
         }
-        vTaskDelay(1);
+        vTaskDelay(100);
     }
 };
+
+static void printHeap(void* pvParameter){
+    for(;;){
+        std::cout << "Free Heap Size: " << esp_get_free_heap_size() << std::endl;
+        std::cout << "Largest block : " << heap_caps_get_largest_free_block(MALLOC_CAP_8BIT) << std::endl;
+        vTaskDelay(10000/portTICK_PERIOD_MS);
+    }
+}
+
+static void getMeasurements(void* pvParameter){
+    for(;;){
+        for(auto i : outletPowerDataSecondsUsedForAveraging){
+            std::cout << "DATA SIZE: " << i.second.size() << std::endl;
+        }
+       vTaskDelay(10000/portTICK_PERIOD_MS);
+    }
+}
 
 // main function
 extern "C" void app_main()
@@ -378,4 +381,6 @@ extern "C" void app_main()
     xTaskCreatePinnedToCore(xbee_uart_event_task, "handle xbee", 8 * 1024, NULL, 12, NULL, 0);
     xTaskCreatePinnedToCore(parseFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL, 0);
     xTaskCreatePinnedToCore(sendFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL, 0);
+    xTaskCreatePinnedToCore(printHeap, "print heap", 2048, NULL, 20, NULL, 1);  
+    xTaskCreatePinnedToCore(getMeasurements, "print heap", 4096, NULL, 21, NULL, 1);  
 }

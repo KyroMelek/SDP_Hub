@@ -60,5 +60,6 @@
     "typeinfo": "cpp",
     "valarray": "cpp",
     "*.ipp": "cpp"
-  }
+  },
+  "idf.portWin": "COM5"
 }
