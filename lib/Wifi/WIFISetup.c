@@ -7,8 +7,8 @@ static const char *TAG = "WIFI Setup";
 
 static EventGroupHandle_t wifi_event_group;
 
-#define SSID "iPhone"
-#define PASS "SeniorDesignTeam08"
+#define SSID "2WIRE688"
+#define PASS "5657879847"
 // #define SSID "WhiteSky-Standard"
 // #define PASS "9fg6cj5k"
 
