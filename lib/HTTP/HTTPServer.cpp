@@ -333,8 +333,14 @@ esp_err_t both_power_handler(httpd_req_t *req)
         uint64_t outletAddr = stoi(stringAddress);
         std::pair<uint64_t, powerData> firstMeasurement = outletPowerDataSeconds[outletAddr];
 
-        std::string name = param;
-        std::string httpResponse = "Name: " + name + "Time: " + std::to_string(firstMeasurement.first) + '\n' + "Bottom Power: " + std::to_string(firstMeasurement.second.bP) + '\n' + "Top Power: " + std::to_string(firstMeasurement.second.tP) + '\n' + "Bottom PF: " + std::to_string(firstMeasurement.second.bPF) + '\n' + "Top PF: " + std::to_string(firstMeasurement.second.tPF);
+        json j = {
+            {"Time", firstMeasurement.first},
+            {"Bottom Power", firstMeasurement.second.bP},
+            {"Top Power", firstMeasurement.second.tP},
+            {"Bottom PF", firstMeasurement.second.bPF},
+            {"Top PF", firstMeasurement.second.tPF}};
+
+        std::string httpResponse = j.dump();
 
         /* Send a simple response */
         // const char resp[] = httpResponse;
