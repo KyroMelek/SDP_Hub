@@ -13,6 +13,7 @@ static const char *GET_SNTP_TIME = "get time";
 
 extern std::queue<std::vector<uint8_t>> xbee_outgoing;
 extern std::map<uint64_t, uint16_t> outletZigbeeAddresses;
+extern std::map<uint64_t, long int> outletNumberMeasurements;
 
 void time_sync_notification_cb(struct timeval *tv)
 {
@@ -60,11 +61,14 @@ void returnTime(json frame_overhead_)
 {
   // get return info
   uint64_t destAddr = frame_overhead_["DST64"].get<uint64_t>();
-  uint16_t destAddrLowOrder = frame_overhead_["DST16"].get<uint32_t>();
+  uint32_t destAddrLowOrder = frame_overhead_["DST16"].get<uint32_t>();
 
   if (!outletZigbeeAddresses.count(destAddr))
     outletZigbeeAddresses[destAddr] = destAddrLowOrder;
 
+  // initalize outlet measurement counter
+  outletNumberMeasurements[destAddr] = 0;
+  
   // get current time
   time_t now;
   time(&now);
@@ -78,6 +82,7 @@ void returnTime(json frame_overhead_)
 
   // get string representation of json object
   std::string json_bytes = j.dump();
+  std::cout << json_bytes << std::endl;
   // add frame to outgoing xbee queue
   std::vector<uint8_t> frame = formTXFrame(json_bytes, destAddr, destAddrLowOrder, NULL, NULL);
   xbee_outgoing.push(frame);
