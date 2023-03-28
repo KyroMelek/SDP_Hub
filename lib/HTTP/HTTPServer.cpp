@@ -32,7 +32,7 @@ esp_err_t top_on_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -78,7 +78,7 @@ esp_err_t top_off_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -127,7 +127,7 @@ esp_err_t bottom_on_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -175,7 +175,7 @@ esp_err_t bottom_off_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -223,7 +223,7 @@ esp_err_t both_on_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -272,7 +272,7 @@ esp_err_t both_off_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -318,7 +318,7 @@ esp_err_t both_power_handler(httpd_req_t *req)
   buf_len = httpd_req_get_url_query_len(req) + 1;
   if (buf_len > 1)
   {
-    char* buf = (char*) malloc(buf_len);
+    char *buf = (char *)malloc(buf_len);
     if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
     {
       ESP_LOGI(TAG, "Found URL query => %s", buf);
@@ -356,8 +356,20 @@ esp_err_t both_power_handler(httpd_req_t *req)
 /* Our URI handler function to be called during GET /uri request */
 esp_err_t all_outlets(httpd_req_t *req)
 {
-  json j = outletZigbeeAddresses;
-  std::string httpResponse = j.dump();
+  // json j = outletZigbeeAddresses;
+
+  json message = {};
+
+  for (auto outlet : outletZigbeeAddresses)
+  {
+    json j = {
+        {"Name", ""},
+        {"longAddress", outlet.first},
+        {"shortAddress", outlet.second}};
+    message += j;
+  }
+
+  std::string httpResponse = message.dump();
   // std::cout << "Server: " << httpResponse << std::endl;
   /* Send a simple response */
   // const char resp[] = httpResponse;
