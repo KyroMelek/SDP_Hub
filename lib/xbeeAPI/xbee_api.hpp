@@ -22,18 +22,20 @@ using json = nlohmann::json;
 ////////////////////////////////////////////////////////
 //          TRANSMISSION/FRAME CONSTANTS              //
 ////////////////////////////////////////////////////////
-// static const uint8_t START_DELIMITER = 0x7E;                                                           // delimiter at the start of every xbee frame
-// static const uint8_t COORDINATOR_ADDRESS_64[] = "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00";      // coordinator address
-// static const uint8_t BROADCAST_ADDRESS_64[] = "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF";        // PAN broadcast address
-// static const uint8_t UNKNOWN_ADDRESS_64[] = "0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF";          // unknown address
-// static const uint8_t COORDINATOR_ADDRESS_16[] = "0x00, 0x00";                                          // coordinator address
-// static const uint8_t BROADCAST_ADDRESS_16[] = "0xFF, 0xFE";                                            // PAN broadcast address
+//static const uint8_t START_DELIMITER = 0x7E;                                                           // delimiter at the start of every xbee frame
+//static const uint8_t COORDINATOR_ADDRESS_64[] = "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00";      // coordinator address
+//static const uint8_t BROADCAST_ADDRESS_64[] = "0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF";        // PAN broadcast address
+//static const uint8_t UNKNOWN_ADDRESS_64[] = "0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF";          // unknown address
+//static const uint8_t COORDINATOR_ADDRESS_16[] = "0x00, 0x00";                                          // coordinator address
+//static const uint8_t BROADCAST_ADDRESS_16[] = "0xFF, 0xFE";                                            // PAN broadcast address
 
-// static const std::string AT_COMMAND_LIST = {};
+//static const std::string AT_COMMAND_LIST = {};
 
 ////////////////////////////////////////////////////////
 //                      AT COMMANDS                   //
 ////////////////////////////////////////////////////////
+
+
 
 ////////////////////////////////////////////////////////
 //                      FUNCTIONS                     //
@@ -44,10 +46,10 @@ void frameIDIncrement();
 
 // determine if option is hex or ascii
 // return size and then option following it in the same array
-uint8_t *parseOptions(std::string options);
+uint8_t* parseOptions(std::string options);
 
 // calculate xbee frame checksum per xbee documentation
-uint8_t calculateCHKSM(uint8_t *framePtr, int frameLength);
+uint8_t calculateCHKSM(uint8_t* framePtr, int frameLength);
 
 ////////////////////////////////////////////////////////
 //                TRANSMIT DATA FRAMES                //
@@ -65,7 +67,7 @@ uint8_t calculateCHKSM(uint8_t *framePtr, int frameLength);
  * accepts an AT command and an optional new value. If a new value is supplied, it replaces the corresponding
  * parameter on the xbee module. If no new value is supplied, the parameter is queried from the xbee module
  */
-std::vector<uint8_t> *formATFrame(std::string ATCommand, std::string newvalue = "");
+std::vector<uint8_t>* formATFrame(std::string ATCommand, std::string newvalue = "");
 
 /* TX REQUEST
  * transmit data from one xbee module to xbee module whose 64bit and 16bit address is provided
@@ -87,8 +89,8 @@ std::vector<uint8_t> *formATFrame(std::string ATCommand, std::string newvalue = 
  *      0x01 = disable retries + route repair
  *      0x02 = enable APS encryption (decreases RF payload by 4 bytes)
  */
-std::vector<uint8_t> *formTXFrame(std::string RFData, uint64_t dst_64 = 0x0000000000000000, uint16_t dst_16 = 0x0000, uint8_t bcr = 0x00, uint8_t opt = 0x00);
-std::vector<uint8_t> *formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt);
+std::vector<uint8_t>  formTXFrame(std::string RFData, uint64_t dst_64 = 0x0000000000000000, uint16_t dst_16 = 0x0000, uint8_t bcr = 0x00, uint8_t opt = 0x00);
+std::vector<uint8_t>  formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64, uint16_t dst_16, uint8_t bcr, uint8_t opt);
 
 /* REMOTE AT COMMAND SET/REQUEST
  * query or set AT parameter on remote xbee module; default is to read the passed parameter
@@ -106,29 +108,29 @@ std::vector<uint8_t> *formTXFrame(std::vector<uint8_t> *RFData, uint64_t dst_64,
  *      0x02 = apply change (0 = will not set)
  *      0x10 = send securely
  */
-std::vector<uint8_t> *formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string newvalue = "", uint8_t opt = 0x00, uint16_t dst_16 = 0xFFFE);
+std::vector<uint8_t>*  formATFrame_Remote(std::string ATCommand, uint64_t dst_64, std::string newvalue = "", uint8_t opt = 0x00, uint16_t dst_16 = 0xFFFE);
 
 ////////////////////////////////////////////////////////
 //                 RECEIVE DATA FRAMES                //
 ////////////////////////////////////////////////////////
 
 // interpret received AT frame as json
-json *parseATCR(uint8_t *frame, uint16_t frameLength);
+json parseATCR(uint8_t* frame, uint16_t frameLength);
 
 // interpret received MS frame as json
-json *parseMS(uint8_t *frame, uint16_t frameLength);
+json parseMS(uint8_t* frame, uint16_t frameLength);
 
 // interpret received TS frame as json
-json *parseTS(uint8_t *frame, uint16_t frameLength);
+json parseTS(uint8_t* frame, uint16_t frameLength);
 
 // interpret received packet as json
-json *receivePacket(uint8_t *frame, uint16_t frameLength);
+json receivePacket(uint8_t* frame, uint16_t frameLength);
 
 // interpret EXPLICIT RX frame as json
-json *explicitRX(uint8_t *frame, uint16_t frameLength);
+json explicitRX(uint8_t* frame, uint16_t frameLength);
 
 // interpret remote AT frame as json
-json *remoteAT(uint8_t *frame, uint16_t frameLength);
+json remoteAT(uint8_t* frame, uint16_t frameLength);
 
 // interpret frame and return data in JSON form
-json *readFrame(uint8_t *frame);
+json readFrame(uint8_t* frame);
