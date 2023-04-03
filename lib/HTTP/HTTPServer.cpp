@@ -383,6 +383,54 @@ esp_err_t all_outlets(httpd_req_t *req)
   return ESP_OK;
 }
 
+esp_err_t power_limit(httpd_req_t *req)
+{
+  size_t buf_len;
+  /* Read URL query string length and allocate memory for length + 1,
+   * extra byte for null termination */
+  buf_len = httpd_req_get_url_query_len(req) + 1;
+  if (buf_len > 1)
+  {
+    char *buf = (char *)malloc(buf_len);
+    if (httpd_req_get_url_query_str(req, buf, buf_len) == ESP_OK)
+    {
+      ESP_LOGI(TAG, "Found URL query => %s", buf);
+      char param[128];
+      char powerLim[128];
+      esp_err_t result;
+      esp_err_t result2;
+      result = httpd_query_key_value(buf, "Address", param, sizeof(param));
+      result2 = httpd_query_key_value(buf, "PLim", powerLim, sizeof(param));
+      free(buf);
+      /* Get value of expected key from query string */
+      if (result == ESP_OK && result2 == ESP_OK)
+      {
+        ESP_LOGI(TAG, "Found URL query parameter => %s", param);
+        ESP_LOGI(TAG, "Found URL query parameter => %s", powerLim);
+        // TODO: Format for power limit
+        json j = {
+            {"op", 1},
+            {"data", {{"value", 4}}}};
+        std::string message = j.dump();
+        std::string stringAddress = param;
+        uint64_t outletAddr = stoi(stringAddress);
+        std::vector<uint8_t> messageUART = formTXFrame(message, outletAddr, outletZigbeeAddresses[outletAddr], NULL, NULL);
+        xbee_outgoing.push(messageUART);
+        const char resp[] = "Power Limit Sent";
+        httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+        return ESP_OK;
+      }
+      else
+      {
+        std::cout << "Result is: " << result << std::endl;
+        return ESP_FAIL;
+      }
+    }
+    free(buf);
+  }
+  return ESP_FAIL;
+}
+
 // //  URI Handler functions
 // /* Our URI handler function to be called during GET /uri request */
 // esp_err_t name_outlet(httpd_req_t *req)
@@ -522,12 +570,12 @@ httpd_uri_t uri_all_outlets = {
     .handler = all_outlets,
     .user_ctx = NULL};
 
-// /* URI handler structure for top receptacle on */
-// httpd_uri_t uri_name_outlet = {
-//     .uri = "/nameOutlet",
-//     .method = HTTP_GET,
-//     .handler = name_outlet,
-//     .user_ctx = NULL};
+/* URI handler structure for top receptacle on */
+httpd_uri_t uri_pow_Lim = {
+    .uri = "/powerLimit",
+    .method = HTTP_GET,
+    .handler = power_limit,
+    .user_ctx = NULL};
 
 /* URI handler structure for POST /uri */
 httpd_uri_t uri_post = {
@@ -557,6 +605,7 @@ httpd_handle_t start_webserver(void)
     httpd_register_uri_handler(server, &uri_both_off);
     httpd_register_uri_handler(server, &uri_both_power);
     httpd_register_uri_handler(server, &uri_all_outlets);
+    httpd_register_uri_handler(server, &uri_pow_Lim);
     // httpd_register_uri_handler(server, &uri_name_outlet);
 
     httpd_register_uri_handler(server, &uri_post);
