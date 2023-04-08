@@ -13,7 +13,7 @@ static const char *GET_SNTP_TIME = "get time";
 
 extern std::queue<std::vector<uint8_t>> xbee_outgoing;
 extern std::map<uint64_t, uint16_t> outletZigbeeAddresses;
-extern std::map<uint64_t, long int> outletNumberMeasurements;
+// extern std::map<uint64_t, long int> outletNumberMeasurements;
 
 void time_sync_notification_cb(struct timeval *tv)
 {
@@ -66,8 +66,8 @@ void returnTime(json frame_overhead_)
   if (!outletZigbeeAddresses.count(destAddr))
     outletZigbeeAddresses[destAddr] = destAddrLowOrder;
 
-  // initalize outlet measurement counter
-  outletNumberMeasurements[destAddr] = 0;
+  // // initalize outlet measurement counter
+  // outletNumberMeasurements[destAddr] = 0;
   
   // get current time
   time_t now;

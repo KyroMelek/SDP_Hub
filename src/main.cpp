@@ -45,8 +45,6 @@ using json = nlohmann::json;
 //---------------------------------
 // global definitions
 #define BUFFER_SIZE (1024 * 4)              // hold 4096 bytes in each buffer
-const size_t NUMBERMEASUREMENTSSTORE = 60;  // store 30 measurements
-const size_t NUMBERMEASUREMENTSUPLOAD = 1; // upload 10 measurements at a time
 const int SIGFIGS = 10000;                  // remove decimal point
 static QueueHandle_t xbee_queue;            // queue to handle xbee events
 
@@ -56,10 +54,6 @@ std::queue<std::vector<uint8_t>> xbee_incoming;
 std::queue<std::vector<uint8_t>> xbee_outgoing;
 // map to hold outlet Addresses
 std::map<uint64_t, uint16_t> outletZigbeeAddresses;
-// map to hold number of measurement per outlet
-std::map<uint64_t, long int> outletNumberMeasurements;
-// map to hold index of most recent measurement
-std::map<uint64_t, int> outletMeasurementMostRecentIndex;
 
 // struct to hold power measurement information
 struct powerData
@@ -68,16 +62,16 @@ struct powerData
     float bPF;
     float tP;
     float tPF;
+    int numOfMeasurements = 0;
+    uint64_t epochTime;
 };
 
-std::map<uint64_t, std::pair<uint64_t, powerData>> outletPowerDataSeconds;                                                           // map to store most recent power measurement for a given outlet-> live power view
-std::map<uint64_t, std::array<std::pair<uint64_t, powerData>, NUMBERMEASUREMENTSSTORE>> outletPowerDataSecondsUsedForAveraging = {}; // map to store NUMBERMEASUREMENTS power measurements per outlet
+std::map<uint64_t, std::pair<uint64_t, powerData>> outletPowerDataSeconds;   // map to store most recent power measurement for a given outlet-> live power view
 
 //This will map each outlet to its current minute data, once the minute data is ready to send (i.e. 60 measurements have been aggregated) it will be sent then replaced by the next minute data to send
-std::queue<uint64_t, powerData> outletMinuteEnergyData;
+std::queue<std::pair<uint64_t, powerData>> outletMinuteEnergyData;
 std::map<uint64_t, powerData> outletMinuteEnergyDataAggregation;
 
-SemaphoreHandle_t secondsQueue;
 
 // GPIO pin definitions
 #define XBEE_UART (UART_NUM_2)     // uart2 to communicate between xbee and esp32
@@ -94,6 +88,9 @@ static const char *SET_SYSTEM_TIME = "set system time";
 static const char *GET_SNTP_TIME = "get time";
 static const char *PARSE_FRAME = "parse xbee frame";
 static const char *SETUP = "setup";
+
+
+static httpd_handle_t server_handle ;
 //---------------------------------
 // function definitions
 
@@ -209,19 +206,34 @@ void performHubAction(json *json_object)
 
             long time = frame_payload["data"]["s"].get<long>();
             uint64_t ZigBAddLong = frame_overhead["DST64"].get<uint64_t>();
-            // calculate index
-            int measurementIndex = time % NUMBERMEASUREMENTSSTORE;
+
             outletPowerDataSeconds[ZigBAddLong] = std::make_pair(time, pd);
-            outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex] = std::make_pair(time, pd);
 
             /*std::cout << "Bottom Power: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.bP << std::endl
                       << "Top Power: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.tP << std::endl
                       << "Bottom PF: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.bPF << std::endl
                       << "Top PF: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.tPF << std::endl;
-            //update number of recieved measurements*/
-            outletNumberMeasurements[ZigBAddLong]++;
-            // update most recent index written to
-            outletMeasurementMostRecentIndex[ZigBAddLong] = measurementIndex;
+            */
+
+            if(!outletMinuteEnergyDataAggregation.contains(ZigBAddLong) && (time%60 <= 5))
+            {
+                std::cout << "adding data to be aggregated" << std::endl;
+                pd.epochTime = time - (time%60) + 60;
+                outletMinuteEnergyDataAggregation[ZigBAddLong] = pd;
+            }
+            else if(outletMinuteEnergyDataAggregation.contains(ZigBAddLong))
+            {
+                std::cout << "aggregating data:" << outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements << std::endl;
+                outletMinuteEnergyDataAggregation[ZigBAddLong].tP += pd.tP;
+                outletMinuteEnergyDataAggregation[ZigBAddLong].bP += pd.bP;
+                outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements += 1;
+                if(outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements == 60)
+                {
+                    std::cout << "pushing data" << std::endl;
+                    outletMinuteEnergyData.push(std::pair(ZigBAddLong,outletMinuteEnergyDataAggregation[ZigBAddLong]));
+                    outletMinuteEnergyDataAggregation[ZigBAddLong] = {};
+                }
+            }
             break;
         }
         // handle setting maximum instaneous power draw
@@ -347,62 +359,31 @@ static void printHeap(void *pvParameter)
     }
 }
 
-static void printMeasurements(void *pvParameter)
+static void uploadMeasurements(void *pvParameter)
 {
-    for (;;)
+    for(;;)
     {
-        for (auto i : outletPowerDataSecondsUsedForAveraging)
+        while(!outletMinuteEnergyData.empty())
         {
-            for (auto j = i.second.begin(); j < i.second.end(); ++j)
-                std::cout << j->first << ", " << j->second.bP << std::endl;
-        }
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
-    }
-}
+            stop_webserver(server_handle);
+            std::cout << "About to Post data" << std::endl;
+            std::pair<uint64_t, powerData> dataToSend = outletMinuteEnergyData.front();
+            outletMinuteEnergyData.pop();
+            uint64_t longAddress = dataToSend.first;
 
-// prepare a portion of measurements for uploading
-static void getMeasurements(void *pvParameter)
-{
-    for (;;)
-    {
-        // for every smart power outlet
-        for (auto i : outletPowerDataSecondsUsedForAveraging)
-        {
-            // std::cout << "NUM MEASUREMENTS: " << outletNumberMeasurements[i.first] << std::endl;
-            // std::cout << "LAST INDEX: " << outletMeasurementMostRecentIndex[i.first] << std::endl;
-            // std::cout << "MOD: " << (outletNumberMeasurements[i.first] % NUMBERMEASUREMENTSUPLOAD) << std::endl;
-            if ((outletNumberMeasurements[i.first] % NUMBERMEASUREMENTSUPLOAD) == 0)
-            {
-                // determine measurements
-                long int lastIndex = outletMeasurementMostRecentIndex[i.first];
-                // if last index < num measurements upload, we have to unwrap
-                std::array<std::pair<uint64_t, powerData>, NUMBERMEASUREMENTSUPLOAD> measurementCollection;
-                if (lastIndex + 1 < NUMBERMEASUREMENTSUPLOAD)
-                {
-                    // std::cout << "SHIFT" << std::endl;
-                    //  get measurements before wrap around
-                    // std::cout << "START: " << (i.second.end()-(NUMBERMEASUREMENTSUPLOAD-lastIndex)+1)-> first << std::endl;
-                    // std::cout << "END: " << (i.second.end()-1)-> first << std::endl;
-                    std::copy(i.second.end() - (NUMBERMEASUREMENTSUPLOAD - lastIndex) + 1, i.second.end(), measurementCollection.begin());
-                    // get other measurements
-                    std::copy(i.second.begin(), i.second.begin() + (lastIndex + 1), measurementCollection.begin() + NUMBERMEASUREMENTSUPLOAD - lastIndex - 1);
-                }
-                else
-                {
-                    // std::cout << "RANGE" << std::endl;
-                    std::copy(i.second.begin() + (lastIndex - NUMBERMEASUREMENTSUPLOAD + 1), i.second.begin() + lastIndex + 1, measurementCollection.begin());
-                }
-
-                for (auto j = measurementCollection.begin(); j < measurementCollection.end(); ++j)
-                    std::cout << j->first << ", " << j->second.bP << std::endl;
-            }
+            json j = {
+            {"TopP", dataToSend.second.tP },
+            {"BottomP", dataToSend.second.bP},
+            {"EpochTime", dataToSend.second.epochTime}};
+            std::cout << "Posting data" << std::endl;
+            vTaskDelay(1000);
+            https_with_url(longAddress,j.dump());
+            vTaskDelay(100);
+            server_handle = start_webserver();            
+            std::cout << "after posting data" << std::endl;
         }
         vTaskDelay(100);
     }
-}
-
-static void uploadMeasurements(void *pvParameter)
-{
 }
 // main function
 extern "C" void app_main()
@@ -428,18 +409,19 @@ extern "C" void app_main()
     xbee_uart_init(); // initalize xbee UART connection
 
     // webserver
-    start_webserver();
-    json j = {
-            {"TopP", 8 },
-            {"BottomP", 9},
-            {"EpochTime", 1680634492}};
+    server_handle = start_webserver();
+    // json j = {
+    //         {"TopP", 8 },
+    //         {"BottomP", 9},
+    //         {"EpochTime", 1680634492}};
 
-    https_with_url(55,j.dump());
+    // https_with_url(55,j.dump());
 
     // begin multitasking
-    xTaskCreatePinnedToCore(xbee_uart_event_task, "handle xbee", 8 * 1024, NULL, 12, NULL, 0);
-    xTaskCreatePinnedToCore(parseFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL, 0);
-    xTaskCreatePinnedToCore(sendFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL, 0);
-    xTaskCreatePinnedToCore(printHeap, "print heap", 2048, NULL, 20, NULL, 1);
-    xTaskCreatePinnedToCore(getMeasurements, "print measurements", 32768, NULL, 21, NULL, 1);
+    xTaskCreate(xbee_uart_event_task, "handle xbee", 8 * 1024, NULL, 12, NULL);
+    xTaskCreate(parseFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL);
+    xTaskCreate(sendFrame, "parse incoming frames", 32768 / 2, NULL, 13, NULL);
+    xTaskCreate(printHeap, "print heap", 2048, NULL, 20, NULL);
+    xTaskCreatePinnedToCore(uploadMeasurements, "Upload measurements", 32768, NULL, 21, NULL, 1);
+
 }

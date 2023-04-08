@@ -132,7 +132,9 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
 void https_with_url(uint64_t address, std::string body)
 {
+    std::cout << "Entering Post method" << std::endl;
     std::string URL = "https://us-east-1.aws.data.mongodb-api.com/app/sdppoweroutlet-ogswv/endpoint/outlet?Address=" + std::to_string(address);
+    std::cout << "URL is: " << URL << std::endl;
     char local_response_buffer[MAX_HTTP_OUTPUT_BUFFER] = {0};
 
     esp_http_client_config_t config = {};
@@ -140,17 +142,29 @@ void https_with_url(uint64_t address, std::string body)
     config.event_handler = _http_event_handler;
     config.user_data = local_response_buffer;
     config.cert_pem = howsmyssl_com_root_cert_pem_start;
+    //config.port = 443;
+    // config.is_async = true;
+    // config.timeout_ms = 10000;
+    //config.buffer_size = 
+
+
+    std::cout << "Before Init handle" << std::endl;
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
 
+    std::cout << "Init handle" << std::endl;
+
     // POST
-    const char *post_data = body.c_str();//"{\"TopP\":\"6\", \"BottomP\":\"7\", \"EpochTime\":\"1680634492\"}";
+    const char *post_data = body.c_str(); //"{\"TopP\":\"6\", \"BottomP\":\"7\", \"EpochTime\":\"1680634492\"}";
+    std::cout << "Data to be sent to DB: " << post_data << std::endl;
     //esp_http_client_set_url(client, "https://us-east-1.aws.data.mongodb-api.com/app/sdppoweroutlet-ogswv/endpoint/outlet?Address=6");
     esp_http_client_set_method(client, HTTP_METHOD_POST);
     esp_http_client_set_header(client, "Content-Type", "application/json");
     esp_http_client_set_post_field(client, post_data, strlen(post_data));
 
+    std::cout << "Before perform: " << std::endl;
     esp_err_t err = esp_http_client_perform(client);
+    std::cout << "after perform: " << err << std::endl;
 
     if (err == ESP_OK) {
         ESP_LOGI(TAG, "HTTP POST Status = %d, content_length = %" PRIu64,
