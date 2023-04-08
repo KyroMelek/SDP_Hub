@@ -203,22 +203,19 @@ void performHubAction(json *json_object)
             pd.bPF = bottom["f"].get<double>() / SIGFIGS;
             pd.tP = top["p"].get<double>() / SIGFIGS;
             pd.tPF = top["f"].get<double>() / SIGFIGS;
+            pd.epochTime = frame_payload["data"]["s"].get<long>();
 
-            long time = frame_payload["data"]["s"].get<long>();
             uint64_t ZigBAddLong = frame_overhead["DST64"].get<uint64_t>();
 
-            outletPowerDataSeconds[ZigBAddLong] = std::make_pair(time, pd);
+            uint32_t destAddrLowOrder = frame_overhead["DST16"].get<uint32_t>();
+            if(!outletZigbeeAddresses.contains(ZigBAddLong))
+                outletZigbeeAddresses[ZigBAddLong] = destAddrLowOrder;
 
-            /*std::cout << "Bottom Power: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.bP << std::endl
-                      << "Top Power: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.tP << std::endl
-                      << "Bottom PF: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.bPF << std::endl
-                      << "Top PF: " << outletPowerDataSecondsUsedForAveraging[ZigBAddLong][measurementIndex].second.tPF << std::endl;
-            */
+            outletPowerDataSeconds[ZigBAddLong] = std::make_pair(pd.epochTime, pd);
 
-            if(!outletMinuteEnergyDataAggregation.contains(ZigBAddLong) && (time%60 <= 5))
+            if(!outletMinuteEnergyDataAggregation.contains(ZigBAddLong) && (pd.epochTime%60 <= 5))
             {
                 std::cout << "adding data to be aggregated" << std::endl;
-                pd.epochTime = time - (time%60) + 60;
                 outletMinuteEnergyDataAggregation[ZigBAddLong] = pd;
             }
             else if(outletMinuteEnergyDataAggregation.contains(ZigBAddLong))
@@ -226,9 +223,10 @@ void performHubAction(json *json_object)
                 std::cout << "aggregating data:" << outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements << std::endl;
                 outletMinuteEnergyDataAggregation[ZigBAddLong].tP += pd.tP;
                 outletMinuteEnergyDataAggregation[ZigBAddLong].bP += pd.bP;
-                outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements += 1;
+                outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements += 1;            
                 if(outletMinuteEnergyDataAggregation[ZigBAddLong].numOfMeasurements == 60)
                 {
+                    outletMinuteEnergyDataAggregation[ZigBAddLong].epochTime = pd.epochTime;
                     std::cout << "pushing data" << std::endl;
                     outletMinuteEnergyData.push(std::pair(ZigBAddLong,outletMinuteEnergyDataAggregation[ZigBAddLong]));
                     outletMinuteEnergyDataAggregation[ZigBAddLong] = {};
@@ -368,7 +366,7 @@ static void uploadMeasurements(void *pvParameter)
             stop_webserver(server_handle);
             std::cout << "About to Post data" << std::endl;
             std::pair<uint64_t, powerData> dataToSend = outletMinuteEnergyData.front();
-            outletMinuteEnergyData.pop();
+            
             uint64_t longAddress = dataToSend.first;
 
             json j = {
@@ -376,8 +374,10 @@ static void uploadMeasurements(void *pvParameter)
             {"BottomP", dataToSend.second.bP},
             {"EpochTime", dataToSend.second.epochTime}};
             std::cout << "Posting data" << std::endl;
-            vTaskDelay(1000);
-            https_with_url(longAddress,j.dump());
+            vTaskDelay(100);
+            esp_err_t err = https_with_url(longAddress,j.dump());
+            if(err == ESP_OK)
+                outletMinuteEnergyData.pop();
             vTaskDelay(100);
             server_handle = start_webserver();            
             std::cout << "after posting data" << std::endl;

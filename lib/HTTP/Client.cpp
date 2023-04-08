@@ -130,7 +130,7 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt)
 }
 
 #if CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
-void https_with_url(uint64_t address, std::string body)
+esp_err_t https_with_url(uint64_t address, std::string body)
 {
     std::cout << "Entering Post method" << std::endl;
     std::string URL = "https://us-east-1.aws.data.mongodb-api.com/app/sdppoweroutlet-ogswv/endpoint/outlet?Address=" + std::to_string(address);
@@ -144,7 +144,7 @@ void https_with_url(uint64_t address, std::string body)
     config.cert_pem = howsmyssl_com_root_cert_pem_start;
     //config.port = 443;
     // config.is_async = true;
-    // config.timeout_ms = 10000;
+    config.timeout_ms = 10000;
     //config.buffer_size = 
 
 
@@ -174,5 +174,6 @@ void https_with_url(uint64_t address, std::string body)
         ESP_LOGE(TAG, "HTTP POST request failed: %s", esp_err_to_name(err));
     }
     esp_http_client_cleanup(client);
+    return err;
 }
 #endif // CONFIG_MBEDTLS_CERTIFICATE_BUNDLE
