@@ -59,7 +59,12 @@
     "cinttypes": "cpp",
     "typeinfo": "cpp",
     "valarray": "cpp",
-    "*.ipp": "cpp"
+    "*.ipp": "cpp",
+    "bit": "cpp",
+    "compare": "cpp",
+    "concepts": "cpp",
+    "numbers": "cpp"
   },
-  "idf.portWin": "COM5"
+  "idf.portWin": "COM5",
+  "cmake.configureOnOpen": true
 }
